@@ -1,8 +1,11 @@
 package org.androidtown.here_is;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -10,6 +13,7 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -25,14 +29,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class ClientService extends Service implements Runnable{
+public class ClientService extends Service implements Runnable {
 
     private Socket s;   // 소켓통신할 소켓
     private BufferedReader inMsg; // 받은 메시지 읽을 버퍼
     private PrintWriter outMsg; // 메세지 보낼 라이터
 
-    private String a_targetIp="13.124.63.18"; // 서버 ip
-    private int a_targetPort=9000; // 서버 port
+    private String a_targetIp = "13.124.63.18"; // 서버 ip
+    private int a_targetPort = 9000; // 서버 port
 
     private List<Userdata> message_List;
 
@@ -41,24 +45,29 @@ public class ClientService extends Service implements Runnable{
     private MyLocationListener listener;
     private Thread myThread;
 
-    private boolean sending_ok_key = false;
-    private boolean locatin_ok_key =false;
+    private Location lastKnownLocation = null ;
+
+    private String j_inmsg=""; // 받은 메시지 저장
+    private String j_outmsg="";
+    private boolean key_sending_ok = false;
+    private boolean key_location_ok = false;
 
     class Mybinder extends Binder {
-        ClientService getService(){
+        ClientService getService() {
             return ClientService.this;
         }
     }
 
 
+    @SuppressLint("MissingPermission")
     @Override
     public void onCreate() {
         super.onCreate();
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         listener = new MyLocationListener();
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 4000, 0, listener);
-        // locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 4000, 0, listener);
-
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 2000, 0, listener);
+        //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 4000, 0, listener);
+        message_List = new ArrayList<>();
         myThread= new Thread(this);
         myThread.start();
 
@@ -67,15 +76,16 @@ public class ClientService extends Service implements Runnable{
     @Override
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
+        return mBinder;
     }
 
     @Override
     public void onDestroy() {
 
-        Log.d("SVC","destroy");
+        Log.d("SCV","destroy");
         try {
-            s.close();
+            if(s!=null)
+                s.close();
             locationManager.removeUpdates(listener);
 
             myThread.interrupt();
@@ -102,24 +112,24 @@ public class ClientService extends Service implements Runnable{
 
     public void run() // 쓰레드 시작부분
     {
-        Log.d("SVC", a_targetIp+ " " +String.format(Locale.KOREA,"%d",a_targetPort));
+        Log.d("CSV", a_targetIp+ " " +String.format(Locale.KOREA,"%d",a_targetPort));
         connectServer(a_targetIp,a_targetPort); // 서버에 연결 하는 함수 받아온 ip.port 넘겨줌
 
         while (s != null && !myThread.isInterrupted()) // 소켓연결이 되어있을경우 무한루프
         {
 
-            Log.d("SVC", "msging");
-            if(send_key)
+            Log.d("CSV", "msging");
+            if(key_location_ok)
                 sendMessage(); // 서버에 현재 위치정보 담아서 보냄
             else
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             //  sendMessage(12131.13131,222.123213);
             //} catch (InterruptedException e) {
-            //   e.printStackTrace();
+            // l  e.printStackTrace();
             // }
         }
 
@@ -188,29 +198,14 @@ public class ClientService extends Service implements Runnable{
         }
 //            inMsg.read(inmsg,0,512);
         try {
-            //outMsg.println(String.format(Locale.KOREA,"%f",Lat)+","+String.format(Locale.KOREA,"%f",Lng));
-
-            //           j_outmsg = myintent.getStringExtra("outmsg");
-            //   msg = Jsonize(Build.USER,Lat,Lng); // 단말기 유저, 위도, 경도정보를 JSON화 함. Gson 이용
 
             outMsg.println(j_outmsg); // JSON화한 메시지를 서버로 보냄 (내정보, 내위치, 경도)
             j_inmsg = inMsg.readLine(); // 내가 메시지 보낸 이후 서버에서 보낸 메시지 수신
 
-
-//                Intent showIntent = new Intent(getApplicationContext(), MainActivity.class);
-//                showIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|
-//                                    Intent.FLAG_ACTIVITY_SINGLE_TOP|
-//                                    Intent.FLAG_ACTIVITY_CLEAR_TOP
-//                                    );
-//                //
-            //  showIntent.putExtra("inmsg_list",j_inmsg);
-            //  startActivity(showIntent);
-
             message_List= gson.fromJson(j_inmsg, new TypeToken<ArrayList<Userdata>>() {}.getType()); // 서버에서 받은 메시지(모든 클라이언트의 이름,위치 메시지 리스트)를 JSON->Gosn-> ArrayList<Userdata>로 해서 저장
-            key=true;
-            Log.d("SCV","j_inmsg: "+j_inmsg);
-            //  message_List = L_m; // 전역변수에 그 받은 리스트 데이터 저장 (쓰레드에서는 토스트나 텍스트뷰 접근이 안되서 메인에서 쓰기위해)
-
+            key_sending_ok=true;
+            Log.d("CSV","j_inmsg: "+j_inmsg);
+            Log.d("CSV","message_list: " +message_List.get(0).getLat());
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -218,30 +213,14 @@ public class ClientService extends Service implements Runnable{
 
         // return inmsg;
     }
-    public void disconnect() // 연결 종료 함수
-    {
 
-        // Logger.getLogger(this.getClass().getName()).;
-
-        try {
-            if(s!=null)
-
-                s.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    void setOutMsg(String outmsg)
-    {
-        j_outmsg= outmsg;
-    }
     List<Userdata> getInmsg()
     {
         return message_List;
     }
-    boolean getkey()
+    boolean get_key_sending_ok()
     {
-        return key;
+        return key_sending_ok;
     }
 
 
@@ -250,14 +229,7 @@ public class ClientService extends Service implements Runnable{
     {
 
         String json = new Gson().toJson(new Userdata(name,lat,lng)); //Data -> Gson -> json
-        Log.d("gson",json);
-        // assertNotNull(json);
-        // assertEquals(json,data);
-
-        // Userdata obj = new Gson().fromJson(data,Userdata.class);
-        //Log.d("gson",obj.getName());
-
-        //assertEquals(Build.USER,obj.getName());
+     //   Log.d("gson",json);
         return json;
 
     }
@@ -265,15 +237,13 @@ public class ClientService extends Service implements Runnable{
     public class MyLocationListener implements LocationListener
     {
 
+        @SuppressLint("MissingPermission")
         @Override
         public void onLocationChanged(Location location) {
-            String inmsg ="";
-            List<Userdata> message_List = new ArrayList<>();
-            Gson gson = new Gson();
             LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
             // Get the last location.
             lastKnownLocation = location; // 업데이트 된 주소 저장
-            Log.d("loc_d",lastKnownLocation.toString());
+            Log.d("lastKnownLocation : ",lastKnownLocation.toString());
             lm.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER, // 네트워크+gps 이용 업데이트
                     1000, //1초마다
@@ -281,16 +251,17 @@ public class ClientService extends Service implements Runnable{
                     listener
             );
             if(s==null) // 서버와 연결 안됬으면 현재 위치 텍스트뷰에
-                Log.d("CSV","not connect");
-                //  tv.setText(String.format(Locale.KOREA,"%.3f",lastKnownLocation.getLatitude())+ " , "+ String.format(Locale.KOREA,"%.3f",lastKnownLocation.getLongitude()));
+            {
+                Log.d("CSV", "n" +
+                        "ot connect");
+//              tv.setText(String.format(Locale.KOREA,"%.3f",lastKnownLocation.getLatitude())+ " , "+ String.format(Locale.KOREA,"%.3f",lastKnownLocation.getLongitude()));
+                Toast.makeText(getApplicationContext(), "Not connected,  "+String.format(Locale.KOREA, "%.3f", lastKnownLocation.getLatitude()) + " , " + String.format(Locale.KOREA, "%.3f", lastKnownLocation.getLongitude()), Toast.LENGTH_SHORT).show();
+            }
             else { // 서버 연결 됫으면 메세지 받은 걸 텍스트 뷰에 뿌림
-                //  message_List = cs.getInmsg();
-                Log.d("ddddd",inmsg);
-                // message_List = gson.fromJson(inmsg, new TypeToken<ArrayList<Userdata>>() {}.getType()); // 서버에서 받은 메시지(모든 클라이언트의 이름,위치 메시지 리스트)를 JSON->Gosn-> ArrayList<Userdata>로 해서 저장
-//                tv.setText("");
                 for(Userdata ud:message_List) {
-                    Log.d("CSV","list: "+"name: " + ud.getName() + " lat: " + ud.getLat() + " lng: " + ud.getLng()+"\n");
-                    //                  tv.append("name: " + ud.getName() + " lat: " + ud.getLat() + " lng: " + ud.getLng()+"\n");
+                    Log.d("CSV","Userlist: "+"name: " + ud.getName() + " lat: " + ud.getLat() + " lng: " + ud.getLng()+"\n");
+                    Toast.makeText(getApplicationContext(),"Userlist: "+"name: " + ud.getName() + " lat: " + ud.getLat() + " lng: " + ud.getLng()+"\n",Toast.LENGTH_SHORT).show();
+                    // tv.append("name: " + ud.getName() + " lat: " + ud.getLat() + " lng: " + ud.getLng()+"\n");
                 }
                 Toast.makeText(getApplicationContext(),"메시지 받음",Toast.LENGTH_SHORT).show();
             }
@@ -298,15 +269,8 @@ public class ClientService extends Service implements Runnable{
             if( lastKnownLocation.hasAltitude()) { // lastKnownLocation이 위치를 받아왔고  키가 0이면 소켓통신 스타트
 
                 j_outmsg = Jsonize(Build.USER,lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude());
-                key2=true;
-                //   serviceIntent.putExtra("outmsg",msg);
-                //  startService(serviceIntent);
-                //cs.setOutMsg(msg);
+                key_location_ok=true;
 
-                //  SC.start(); // 소켓통신 관련 쓰레드함수 시작
-
-                //msg=Jsonize(Build.USER,lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude());
-                //sv_key=1;
             }
 
 

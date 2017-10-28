@@ -42,7 +42,7 @@ import org.androidtown.here_is.ClientService.Mybinder;
 public class MapActivity extends AppCompatActivity
         implements
         NavigationView.OnNavigationItemSelectedListener,
-        GoogleMap.OnMyLocationButtonClickListener,
+      //  GoogleMap.OnMyLocationButtonClickListener,
         OnMapReadyCallback,
         ActivityCompat.OnRequestPermissionsResultCallback{
 
@@ -74,7 +74,6 @@ public class MapActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
-
         FragmentManager fragmentManager = getFragmentManager();
         MapFragment mapFragment = (MapFragment)fragmentManager
                 .findFragmentById(R.id.map);
@@ -111,7 +110,7 @@ public class MapActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap gMap) {
         map = gMap;
-        map.setOnMyLocationButtonClickListener(this); // gps 버튼 활성화
+       // map.setOnMyLocationButtonClickListener(this); // gps 버튼 활성화
         enableMyLocation(); // 내 위치 활성화
 
 
@@ -130,8 +129,15 @@ public class MapActivity extends AppCompatActivity
         public void onClick(View view)
         {
 
-            Intent intent = new Intent(MapActivity.this,ClientService.class);
-            bindService(intent,conn,Context.BIND_AUTO_CREATE);
+            if(!isService) {
+                Intent intent = new Intent(MapActivity.this, ClientService.class);
+                bindService(intent, conn, Context.BIND_AUTO_CREATE);
+                Toast.makeText(getApplicationContext(), "위치 추적 시작, Service 시작 ", Toast.LENGTH_SHORT).show();
+            }
+            else
+            {
+                Toast.makeText(getApplicationContext(), "위치 추적 켜 있음,Serviec 켜있음", Toast.LENGTH_SHORT).show();
+            }
         }
         });
 
@@ -139,9 +145,15 @@ public class MapActivity extends AppCompatActivity
         { @Override
         public void onClick(View view)
         {
-
-            unbindService(conn);
-
+            if(isService) {
+                unbindService(conn);
+                Toast.makeText(getApplicationContext(), "위치 추적 끔 ,Service unBind", Toast.LENGTH_SHORT).show();
+                isService=false;
+            }
+            else
+            {
+                Toast.makeText(getApplicationContext(), "위치 추적 켜 있지 않음", Toast.LENGTH_SHORT).show();
+            }
         }
         });
         Btn_Clear.setOnClickListener(new Button.OnClickListener()
@@ -182,33 +194,33 @@ public class MapActivity extends AppCompatActivity
 
 
 
-    @Override
-    public boolean onMyLocationButtonClick() { // 위치 추적 버튼 누를때
-        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        if(!lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) //GPS 없을때
-        {
-            Toast.makeText(this, "GPS 켜지지않음, GPS를 켜주세요.", Toast.LENGTH_SHORT).show();
 
-            return false;
-        }
-//       lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,0,0,clocationListener);
-        if(gps_key==false) {
-            Toast.makeText(this, "GPS 추적 ON", Toast.LENGTH_SHORT).show();
-        //    Intent intent = new Intent(MapActivity.this,ClientService.class);
-        //    bindService(intent,conn,Context.BIND_AUTO_CREATE);
-            gps_key=true;
-        }
-        else // gps끌때 소켓통신 종료, 추적 종료
-        {
-            Toast.makeText(this, "GPS 추적 OFF", Toast.LENGTH_SHORT).show();
-          //  unbindService(conn);
-//            stopService(serviceIntent);
-
-            gps_key=true;
-
-        }
-        return false;
-    }
+//    public boolean onMyLocationButtonClick() { // 위치 추적 버튼 누를때
+//        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+//        if(!lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) //GPS 없을때
+//        {
+//            Toast.makeText(this, "GPS 켜지지않음, GPS를 켜주세요.", Toast.LENGTH_SHORT).show();
+//
+//            return false;
+//        }
+////       lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,0,0,clocationListener);
+//        if(gps_key==false) {
+//            Toast.makeText(this, "GPS 추적 ON", Toast.LENGTH_SHORT).show();
+//        //    Intent intent = new Intent(MapActivity.this,ClientService.class);
+//        //    bindService(intent,conn,Context.BIND_AUTO_CREATE);
+//            gps_key=true;
+//        }
+//        else // gps끌때 소켓통신 종료, 추적 종료
+//        {
+//            Toast.makeText(this, "GPS 추적 OFF", Toast.LENGTH_SHORT).show();
+//          //  unbindService(conn);
+////            stopService(serviceIntent);
+//
+//            gps_key=true;
+//
+//        }
+//        return false;
+//    }
 
 
 
@@ -222,7 +234,7 @@ public class MapActivity extends AppCompatActivity
                     Manifest.permission.ACCESS_FINE_LOCATION, true);
         } else if (map != null) {
             // Access to the location has been granted to the app.
-            map.setMyLocationEnabled(true);
+           // map.setMyLocationEnabled(true);
 
         }
     }
@@ -257,6 +269,7 @@ public class MapActivity extends AppCompatActivity
         org.androidtown.here_is.PermissionUtils.PermissionDeniedDialog
                 .newInstance(true).show(getSupportFragmentManager(), "dialog");
     }
+
 
     // 위치 퍼미션 끝
 

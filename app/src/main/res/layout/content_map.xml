@@ -35,13 +35,13 @@
                 android:id="@+id/StartSendLocBtn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Start send loc"
+                android:text="위치추적 시작"
                 android:layout_weight="0.3"/>
             <Button
                 android:id="@+id/StopSendLocBtn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Stop send loc"
+                android:text="위치추적 끔"
                 android:layout_weight="0.3"/>
             <Button
                 android:id="@+id/Clear"
