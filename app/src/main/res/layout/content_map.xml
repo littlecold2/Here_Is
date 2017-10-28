@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="org.androidtown.here_is.MapActivity"
+    tools:showIn="@layout/app_bar_map"
+    android:orientation="vertical"
+    android:weightSum="1"
+    >
+
+
+
+    <fragment
+        android:id="@+id/map"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="0.20"
+        class="com.google.android.gms.maps.MapFragment" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:layout_weight="0.80"
+        android:weightSum="1">
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:weightSum="1"
+            >
+            <Button
+                android:id="@+id/StartSendLocBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Start send loc"
+                android:layout_weight="0.3"/>
+            <Button
+                android:id="@+id/StopSendLocBtn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Stop send loc"
+                android:layout_weight="0.3"/>
+            <Button
+                android:id="@+id/Clear"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Clear"
+                android:layout_weight="0.3"/>
+
+        </LinearLayout>
+        <ScrollView
+            android:id="@+id/scollview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <TextView
+                android:id="@+id/DDtext"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:hint=" information View"
+                android:textSize="12dp" />
+        </ScrollView>
+
+
+    </LinearLayout>
+
+
+
+
+</LinearLayout>
