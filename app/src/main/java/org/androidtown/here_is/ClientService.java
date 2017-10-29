@@ -49,8 +49,10 @@ public class ClientService extends Service implements Runnable {
 
     private String j_inmsg=""; // 받은 메시지 저장
     private String j_outmsg="";
-    private boolean key_sending_ok = false;
+    private boolean key_getMessage_ok = false;
     private boolean key_location_ok = false;
+    private boolean key_gps_ok =false;
+    private boolean key_socket_ok = false;
 
     class Mybinder extends Binder {
         ClientService getService() {
@@ -87,7 +89,6 @@ public class ClientService extends Service implements Runnable {
             if(s!=null)
                 s.close();
             locationManager.removeUpdates(listener);
-
             myThread.interrupt();
 
         } catch (IOException e) {
@@ -112,32 +113,39 @@ public class ClientService extends Service implements Runnable {
 
     public void run() // 쓰레드 시작부분
     {
+
         Log.d("CSV", a_targetIp+ " " +String.format(Locale.KOREA,"%d",a_targetPort));
-        connectServer(a_targetIp,a_targetPort); // 서버에 연결 하는 함수 받아온 ip.port 넘겨줌
 
-        while (s != null && !myThread.isInterrupted()) // 소켓연결이 되어있을경우 무한루프
+
+        while ( !myThread.isInterrupted()) //
         {
+            Log.d("CSV", "j_outmsg: "+j_outmsg);
+            if(!locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER))
+            {
+                Log.d("CSV", "no gps connect");
+                key_gps_ok =false;
+            }
+            else
+            {
+                key_gps_ok =true;
+            }
+            if(s==null||s.isClosed()) {
+                connectServer(a_targetIp, a_targetPort);
+            }
+            if(key_location_ok&&s!=null&&!s.isClosed()) {
+                    // 서버에 연결 하는 함수 받아온 ip.port 넘겨줌
+                    Log.d("CSV", "msging");
+                    sendMessage(); // 서버에 현재 위치정보 담아서 보냄
 
-            Log.d("CSV", "msging");
-            if(key_location_ok)
-                sendMessage(); // 서버에 현재 위치정보 담아서 보냄
+            }
             else
                 try {
                     Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-            //  sendMessage(12131.13131,222.123213);
-            //} catch (InterruptedException e) {
-            // l  e.printStackTrace();
-            // }
-        }
 
-//            try {
-//                s.close();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
+        }
 
 
     }
@@ -147,45 +155,27 @@ public class ClientService extends Service implements Runnable {
             // 소켓 생성
             if((s = new Socket(targetIp,targetPort))==null) // 소켓연결 성공 실패시
             {
-                //  Toast.makeText(getApplicationContext(), "[Client]Server 연결 실패!!", Toast.LENGTH_SHORT).show();
                 Log.d("D_socket", "[Client]Server 연결 fail!!");
                 return;
             }
             else {
-                //   Toast.makeText(getApplicationContext(), "[Client]Server 연결 성공!!", Toast.LENGTH_SHORT).show();
                 Log.d("D_socket", "[Client]Server 연결 성공!!");
 
             }
             // 입출력 스트림 생성
             inMsg = new BufferedReader(new InputStreamReader(s.getInputStream())); // 수신 메시지 담을 버퍼
             outMsg = new PrintWriter(s.getOutputStream(),true); //송신 메시지 롸이터
-            // outMsg.println(Build.USER);
             Log.d("D_socket", Build.USER);
-
-            // Thread.sleep(10000); // 서버연결 됬을시 3초정도 쉼
-//            m.setId(v.id);
-//            m.setType("login");
-
-            //System.out.println(mL.getId()+"");
-            //System.out.println(mL.getType()+"");
-            //System.out.println(mL.getRoom()+"");
-
-//            outMsg.println(gson.toJson(m)); // 출력 스트림으로 mL에 담은 메시지를 Json형식으로 해서 보낸다. 쓴다.
 
 
 
         }catch(Exception e) {
             Log.d("D_socket", "Error : " + e);
-            //Toast.makeText(getApplicationContext(), "[Client]Server 연결 실패!!", Toast.LENGTH_SHORT).show();
-            //e.printStackTrace();
-            //return;
         }
     }// connectServer()
 
     public void sendMessage() // 서버에 메시지 보내는 함수
     {
-//            String j_inmsg=""; // 받은 메시지 저장
-//            String j_outmsg="";
 
         Userdata m = new Userdata(); // 메시지 형식 프로토콜 클래스 (현재 이름, 위도, 경도)
         List<Userdata> L_m = new ArrayList<>(); // 서버에서 주는 지금 접속해있는 클라이언트 위치정보 받을 메시지 리스트
@@ -196,14 +186,13 @@ public class ClientService extends Service implements Runnable {
         {
             return;
         }
-//            inMsg.read(inmsg,0,512);
         try {
 
             outMsg.println(j_outmsg); // JSON화한 메시지를 서버로 보냄 (내정보, 내위치, 경도)
             j_inmsg = inMsg.readLine(); // 내가 메시지 보낸 이후 서버에서 보낸 메시지 수신
 
             message_List= gson.fromJson(j_inmsg, new TypeToken<ArrayList<Userdata>>() {}.getType()); // 서버에서 받은 메시지(모든 클라이언트의 이름,위치 메시지 리스트)를 JSON->Gosn-> ArrayList<Userdata>로 해서 저장
-            key_sending_ok=true;
+            key_getMessage_ok=true;
             Log.d("CSV","j_inmsg: "+j_inmsg);
             Log.d("CSV","message_list: " +message_List.get(0).getLat());
 
@@ -214,22 +203,25 @@ public class ClientService extends Service implements Runnable {
         // return inmsg;
     }
 
-    List<Userdata> getInmsg()
+    public List<Userdata> getMessage_List()
     {
         return message_List;
     }
-    boolean get_key_sending_ok()
+    public boolean get_key_getMessage_ok()
     {
-        return key_sending_ok;
+        return key_getMessage_ok;
     }
-
+    public boolean get_key_gps_ok()
+    {
+        return key_gps_ok;
+    }
+    public Socket getSocket(){return s;}
 
 
     public String Jsonize(String name, Double lat,  Double lng) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
     {
 
         String json = new Gson().toJson(new Userdata(name,lat,lng)); //Data -> Gson -> json
-     //   Log.d("gson",json);
         return json;
 
     }
@@ -260,7 +252,7 @@ public class ClientService extends Service implements Runnable {
             else { // 서버 연결 됫으면 메세지 받은 걸 텍스트 뷰에 뿌림
                 for(Userdata ud:message_List) {
                     Log.d("CSV","Userlist: "+"name: " + ud.getName() + " lat: " + ud.getLat() + " lng: " + ud.getLng()+"\n");
-                    Toast.makeText(getApplicationContext(),"Userlist: "+"name: " + ud.getName() + " lat: " + ud.getLat() + " lng: " + ud.getLng()+"\n",Toast.LENGTH_SHORT).show();
+                //    Toast.makeText(getApplicationContext(),"Userlist: "+"name: " + ud.getName() + " lat: " + ud.getLat() + " lng: " + ud.getLng()+"\n",Toast.LENGTH_SHORT).show();
                     // tv.append("name: " + ud.getName() + " lat: " + ud.getLat() + " lng: " + ud.getLng()+"\n");
                 }
                 Toast.makeText(getApplicationContext(),"메시지 받음",Toast.LENGTH_SHORT).show();
@@ -272,11 +264,6 @@ public class ClientService extends Service implements Runnable {
                 key_location_ok=true;
 
             }
-
-
-//            Toast.makeText(getApplicationContext(), SC.sendMessage(lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude()),Toast.LENGTH_SHORT).show();
-            // lm.removeUpdates(locationListener);
-
         }
 
         @Override
@@ -286,12 +273,14 @@ public class ClientService extends Service implements Runnable {
 
         @Override
         public void onProviderEnabled(String provider) {
-
+            Toast.makeText(getApplicationContext(),"GPS 켜짐.",Toast.LENGTH_LONG).show();
+                key_gps_ok =true;
         }
 
         @Override
         public void onProviderDisabled(String provider) {
-
+            Toast.makeText(getApplicationContext(),"GPS를 꺼짐.",Toast.LENGTH_LONG).show();
+            key_gps_ok =false;
         }
     }
 }
