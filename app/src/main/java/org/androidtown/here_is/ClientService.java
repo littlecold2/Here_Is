@@ -38,7 +38,7 @@ public class ClientService extends Service implements Runnable {
     private String a_targetIp = "13.124.63.18"; // 서버 ip
     private int a_targetPort = 9000; // 서버 port
 
-    private List<Userdata> message_List;
+    private List<Message> message_List;
 
     private IBinder mBinder = new Mybinder();
     private LocationManager locationManager;
@@ -67,7 +67,7 @@ public class ClientService extends Service implements Runnable {
         super.onCreate();
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         listener = new MyLocationListener();
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 0, listener);
+     //   locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 4000, 0, listener);
         //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 4000, 0, listener);
         message_List = new ArrayList<>();
         myThread= new Thread(this);
@@ -90,7 +90,7 @@ public class ClientService extends Service implements Runnable {
                 s.close();
             locationManager.removeUpdates(listener);
             myThread.interrupt();
-
+            myThread.interrupt();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -131,21 +131,22 @@ public class ClientService extends Service implements Runnable {
                 key_gps_ok =true;
             }
             if(s==null||s.isClosed()) {
+                key_getMessage_ok =false;
                 connectServer(a_targetIp, a_targetPort);
             }
             if(key_location_ok&&s!=null&&!s.isClosed()) {
                     // 서버에 연결 하는 함수 받아온 ip.port 넘겨줌
                     Log.d("CSV", "msging");
-                    sendMessage(); // 서버에 현재 위치정보 담아서 보냄
+                    MessageController(); // 서버에 현재 위치정보 담아서 보냄
 
             }
             else
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(3000);
                 } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                     e.printStackTrace();
                 }
-
         }
 
 
@@ -154,15 +155,10 @@ public class ClientService extends Service implements Runnable {
     {
         try{
             // 소켓 생성
-            if((s = new Socket(targetIp,targetPort))==null) // 소켓연결 성공 실패시
-            {
-                Log.d("D_socket", "[Client]Server 연결 fail!!");
-                return;
-            }
-            else {
+            s = new Socket(targetIp,targetPort); // 소켓연결 성공 실패시
                 Log.d("D_socket", "[Client]Server 연결 성공!!");
 
-            }
+
             // 입출력 스트림 생성
             inMsg = new BufferedReader(new InputStreamReader(s.getInputStream())); // 수신 메시지 담을 버퍼
             outMsg = new PrintWriter(s.getOutputStream(),true); //송신 메시지 롸이터
@@ -175,12 +171,8 @@ public class ClientService extends Service implements Runnable {
         }
     }// connectServer()
 
-    public void sendMessage() // 서버에 메시지 보내는 함수
+    public void MessageController() // 서버에 메시지 보내는 함수
     {
-
-        Userdata m = new Userdata(); // 메시지 형식 프로토콜 클래스 (현재 이름, 위도, 경도)
-        List<Userdata> L_m = new ArrayList<>(); // 서버에서 주는 지금 접속해있는 클라이언트 위치정보 받을 메시지 리스트
-
         Gson gson = new Gson(); // JSon 직렬화 해서 편하게 쓰는 Gson
 
         if(s.isClosed() ) // 소켓 연경 안되잇으면
@@ -192,7 +184,7 @@ public class ClientService extends Service implements Runnable {
             outMsg.println(j_outmsg); // JSON화한 메시지를 서버로 보냄 (내정보, 내위치, 경도)
             j_inmsg = inMsg.readLine(); // 내가 메시지 보낸 이후 서버에서 보낸 메시지 수신
 
-            message_List= gson.fromJson(j_inmsg, new TypeToken<ArrayList<Userdata>>() {}.getType()); // 서버에서 받은 메시지(모든 클라이언트의 이름,위치 메시지 리스트)를 JSON->Gosn-> ArrayList<Userdata>로 해서 저장
+            message_List= gson.fromJson(j_inmsg, new TypeToken<ArrayList<Message>>() {}.getType()); // 서버에서 받은 메시지(모든 클라이언트의 이름,위치 메시지 리스트)를 JSON->Gosn-> ArrayList<Userdata>로 해서 저장
             key_getMessage_ok=true;
             Log.d("CSV","j_inmsg: "+j_inmsg);
             Log.d("CSV","message_list: " +message_List.get(0).getLat());
@@ -204,7 +196,8 @@ public class ClientService extends Service implements Runnable {
         // return inmsg;
     }
 
-    public List<Userdata> getMessage_List()
+
+    public List<Message> getMessage_List()
     {
         return message_List;
     }
@@ -219,15 +212,17 @@ public class ClientService extends Service implements Runnable {
     }
     public Socket getSocket(){return s;}
     public Location getMyLocation(){return lastKnownLocation;}
+    public void setJ_outmsg(String outmsg){j_outmsg =outmsg;}
 
 
     public String Jsonize(String id, String name, Double lat,  Double lng) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
     {
 
-        String json = new Gson().toJson(new Userdata(id,name,lat,lng)); //Data -> Gson -> json
+        String json = new Gson().toJson(new Message(id,name,lat,lng)); //Data -> Gson -> json
         return json;
 
     }
+
 
     public class MyLocationListener implements LocationListener
     {
@@ -235,11 +230,11 @@ public class ClientService extends Service implements Runnable {
         @SuppressLint("MissingPermission")
         @Override
         public void onLocationChanged(Location location) {
-            LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+//            LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
             // Get the last location.
             lastKnownLocation = location; // 업데이트 된 주소 저장
             Log.d("lastKnownLocation : ",lastKnownLocation.toString());
-            lm.requestLocationUpdates(
+            locationManager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER, // 네트워크+gps 이용 업데이트
                     1000, //1초마다
                     10, // 최소 거리 10미터
@@ -270,6 +265,7 @@ public class ClientService extends Service implements Runnable {
 
         }
 
+        @SuppressLint("MissingPermission")
         @Override
         public void onProviderEnabled(String provider) {
             Toast.makeText(getApplicationContext(),"GPS 켜짐.",Toast.LENGTH_LONG).show();
