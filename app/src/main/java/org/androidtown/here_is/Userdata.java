@@ -5,20 +5,27 @@ package org.androidtown.here_is;
  */
 
 public class Userdata {
+    private String id;
     private String name;
     private Double latitude;
     private Double longitude;
+
 
     Userdata()
     {
 
     }
 
-    Userdata(String name, Double lat,Double lng)
+    Userdata(String id,String name, Double lat,Double lng)
     {
+        this.id  = id;
         this.name = name;
         latitude = lat;
         longitude= lng;
+    }
+    String getId()
+    {
+        return id;
     }
     String getName()
     {

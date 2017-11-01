@@ -7,9 +7,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.hardware.usb.UsbRequest;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -39,6 +41,7 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
@@ -49,7 +52,6 @@ import org.androidtown.here_is.ClientService.Mybinder;
 public class MapActivity extends AppCompatActivity
         implements
         NavigationView.OnNavigationItemSelectedListener,
-      //  GoogleMap.OnMyLocationButtonClickListener,
         OnMapReadyCallback,
         ActivityCompat.OnRequestPermissionsResultCallback{
 
@@ -60,9 +62,6 @@ public class MapActivity extends AppCompatActivity
     private ArrayList<MarkerOptions> L_Marker_userlist;
     private ClientService CS;
     private boolean isService = false;
-    private UserLocating UL;
-
-    private boolean key_gps_ok =false;
 
     ServiceConnection conn = new ServiceConnection() {
         @Override
@@ -88,10 +87,13 @@ public class MapActivity extends AppCompatActivity
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);  // 구글맵 프레그먼트 적용
 
+        Intent intent = new Intent(MapActivity.this, ClientService.class);
+        bindService(intent, conn, Context.BIND_AUTO_CREATE);
+        Toast.makeText(getApplicationContext(), "Service 시작 ", Toast.LENGTH_SHORT).show();
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        //CS = new ClientService();
+       // Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+       // setSupportActionBar(toolbar);
+        CS = new ClientService();
         tv = (TextView) findViewById(R.id.DDtext);
         L_Marker_userlist =new ArrayList<>();
 
@@ -110,7 +112,8 @@ public class MapActivity extends AppCompatActivity
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                this, drawer, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+//                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
@@ -125,24 +128,37 @@ public class MapActivity extends AppCompatActivity
                     // 현재 UI 스레드가 아니기 때문에 메시지 큐에 Runnable을 등록 함
                 while (true) {
                     try {
-                        Thread.sleep(5000);
+                        Thread.sleep(2000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                     runOnUiThread(new Runnable() {
                         public void run() {
                             List<Userdata> message_List;
-                            if (isService) {
+                            if(!CS.get_key_gps_ok())
+                            {
+                                Toast.makeText(getApplicationContext(),"GPS를 켜주세요.",Toast.LENGTH_SHORT).show();
+                                tv.setText("");
+                            }
+                            else if (isService&& CS.get_key_getMessage_ok()) {
+                                Toast.makeText(getApplicationContext(),"메시지 받음",Toast.LENGTH_SHORT).show();
                                 message_List = CS.getMessage_List();
                                 tv.setText("");
                                 L_Marker_userlist.clear();
                                 map.clear();
 
                                 for (Userdata ud : message_List) {
-                                    pickMark(new LatLng(ud.getLat(), ud.getLng()), ud.getName(), "인삿말");
-                                    tv.append("name: " + ud.getName() + " lat: " + ud.getLat() + " lng: " + ud.getLng()+"\n");
+                                    pickMark(new LatLng(ud.getLat(), ud.getLng()), ud.getName(), "인삿말", ud);
+                                    tv.append("ID: "+ ud.getId() + " name: " + ud.getName() + "\nlat: " + ud.getLat() + " lng: " + ud.getLng()+"\n");
                                 }
-
+                            }
+                            else if(isService && CS.get_key_getlocation_ok() && !CS.get_key_getMessage_ok())
+                            {
+                                tv.setText("");
+                                L_Marker_userlist.clear();
+                                map.clear();
+                                pickMark(new LatLng(CS.getMyLocation().getLatitude(), CS.getMyLocation().getLongitude()), Build.USER, "인삿말");
+                                tv.append("서버 켜지지 않음\n name: " + "나" + " lat: " + CS.getMyLocation().getLatitude() + " lng: " + CS.getMyLocation().getLongitude() +"\n");
                             }
                         }
 
@@ -158,19 +174,33 @@ public class MapActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap gMap) {
         map = gMap;
-       // map.setOnMyLocationButtonClickListener(this); // gps 버튼 활성화
         enableMyLocation(); // 내 위치 활성화
 
-
         map.moveCamera(CameraUpdateFactory.newLatLng( new LatLng( 37.628, 126.825)));
-        map.animateCamera(CameraUpdateFactory.zoomTo(15));
+        map.animateCamera(CameraUpdateFactory.zoomTo(16));
 
        // map.setPadding(300,300,300,300); // left, top, right, bottom //버튼이나 그런거 위치 한정?
         map.getUiSettings().setZoomControlsEnabled(true); // 줌 버튼 가능하게
 
+
+        map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override //마커 클릭시
+            public boolean onMarkerClick(Marker marker) {
+//                Userdata ud =marker.getTag();
+                Toast.makeText(getApplicationContext(),((Userdata)marker.getTag()).getId(),Toast.LENGTH_SHORT).show(); // 마커 클릭 시 걔 이름 출력
+
+//
+                // 토스트나 알럿 메세지...
+                return false;
+            }
+        });
+
+
+
+
         Button Btn_startSendloc = (Button) findViewById(R.id.StartSendLocBtn); // 대중교통 길찾기 버튼
         Button Btn_stopSendloc = (Button) findViewById(R.id.StopSendLocBtn); // clear 버튼
-        Button Btn_Clear = (Button) findViewById(R.id.Clear); // 위치검색 버튼
+        Button Btn_MyLoction = (Button) findViewById(R.id.MyLocationBtn); // 위치검색 버튼
 
         Btn_startSendloc.setOnClickListener(new Button.OnClickListener()
         { @Override
@@ -180,11 +210,11 @@ public class MapActivity extends AppCompatActivity
             if(!isService ) {
                     Intent intent = new Intent(MapActivity.this, ClientService.class);
                     bindService(intent, conn, Context.BIND_AUTO_CREATE);
-                    Toast.makeText(getApplicationContext(), "위치 추적 시작, Service 시작 ", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Service 시작 ", Toast.LENGTH_SHORT).show();
             }
             else
             {
-                Toast.makeText(getApplicationContext(), "위치 추적 켜 있음,Serviec 켜있음", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Service 켜있음", Toast.LENGTH_SHORT).show();
             }
         }
         });
@@ -204,14 +234,15 @@ public class MapActivity extends AppCompatActivity
             }
         }
         });
-        Btn_Clear.setOnClickListener(new Button.OnClickListener()
+        Btn_MyLoction.setOnClickListener(new Button.OnClickListener()
         { @Override
         public void onClick(View view)
         { //위치검색 (PlacePicker)
            // MarkerPoints.clear(); // 마커 저장 해논 리스트 클리어
-            map.clear(); // 맵에있는 오브젝트 클리어
-            tv.setHint("information");
-
+            if(CS.get_key_getlocation_ok())
+                map.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(CS.getMyLocation().getLatitude(),CS.getMyLocation().getLongitude())));
+            else
+                Toast.makeText(getApplicationContext(), "위치 확인중...", Toast.LENGTH_SHORT).show();
 
 
         }
@@ -222,37 +253,34 @@ public class MapActivity extends AppCompatActivity
 
 
 
+    private void pickMark(final LatLng LL,String name, String address,Userdata data) // 위도 경도, 이름 주소 받아서 마커 찍는 함수
+    {
+        MarkerOptions markerOptions = new MarkerOptions(); // 옵션 설정 해놓을 변수
+        markerOptions.position(LL); // 위치 적용
+//        markerOptions.title(String.format(Locale.KOREA,"%.3f",LL.latitude)+","+String.format(Locale.KOREA,"%.3f",LL.longitude));
+        markerOptions.title(name); // 이름
+//        markerOptions.snippet(address.substring(0,20)); // 주소 넣음
+        markerOptions.snippet(address); // 주소 넣음
 
+        markerOptions.draggable(true); // 드래그 가능하도록
 
-    public class UserLocating extends Thread {
-
-        List<Userdata> message_List;
-
-        @Override
-        public void run() {
-            while (true)
-            {
-                try {
-                    Thread.sleep(3000);
-                   if (isService) {
-                        message_List= CS.getMessage_List();
-//                        tv.setText("");
-//                        map.clear();
-                        for (Userdata ud : message_List) {
-                            pickMark(new LatLng(ud.getLat(),ud.getLng()),ud.getName(),"인삿말");
-//                          Log.d("CSV", "Userlist: " + "name: " + ud.getName() + " lat: " + ud.getLat() + " lng: " + ud.getLng() + "\n");
-//                          Toast.makeText(getApplicationContext(), "Userlist: " + "name: " + ud.getName() + " lat: " + ud.getLat() + " lng: " + ud.getLng() + "\n", Toast.LENGTH_SHORT).show();
-//                            tv.append("name: " + ud.getName() + " lat: " + ud.getLat() + " lng: " + ud.getLng()+"\n");
-                        }
-
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-            }
+        if(L_Marker_userlist.size()==0)
+        {
+            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.image1));
         }
-    }
+        else if (L_Marker_userlist.size() == 1) {
+            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.image2));
+        }
+        else if(L_Marker_userlist.size()>1)
+        {
+            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.image3));
+        }
+        map.addMarker(markerOptions).setFlat(true);
+        map.addMarker(markerOptions).setTag(data);
+        map.addMarker(markerOptions).setDraggable(true);
+        map.addMarker(markerOptions).showInfoWindow(); // 맵에 추가
+        L_Marker_userlist.add(markerOptions); // 위치정보 마커 리스트에 추가
+    } // pickMark
 
     private void pickMark(final LatLng LL,String name, String address) // 위도 경도, 이름 주소 받아서 마커 찍는 함수
     {
@@ -276,7 +304,7 @@ public class MapActivity extends AppCompatActivity
         {
             markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.image3));
         }
-
+        map.addMarker(markerOptions).setFlat(true);
         map.addMarker(markerOptions).setDraggable(true);
         map.addMarker(markerOptions).showInfoWindow(); // 맵에 추가
         L_Marker_userlist.add(markerOptions); // 위치정보 마커 리스트에 추가
@@ -392,36 +420,5 @@ public class MapActivity extends AppCompatActivity
         return true;
     }
 }
-
-
-
-
-//    public boolean onMyLocationButtonClick() { // 위치 추적 버튼 누를때
-//        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-//        if(!lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) //GPS 없을때
-//        {
-//            Toast.makeText(this, "GPS 켜지지않음, GPS를 켜주세요.", Toast.LENGTH_SHORT).show();
-//
-//            return false;
-//        }
-////       lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,0,0,clocationListener);
-//        if(gps_key==false) {
-//            Toast.makeText(this, "GPS 추적 ON", Toast.LENGTH_SHORT).show();
-//        //    Intent intent = new Intent(MapActivity.this,ClientService.class);
-//        //    bindService(intent,conn,Context.BIND_AUTO_CREATE);
-//            gps_key=true;
-//        }
-//        else // gps끌때 소켓통신 종료, 추적 종료
-//        {
-//            Toast.makeText(this, "GPS 추적 OFF", Toast.LENGTH_SHORT).show();
-//          //  unbindService(conn);
-////            stopService(serviceIntent);
-//
-//            gps_key=true;
-//
-//        }
-//        return false;
-//    }
-
 
 

@@ -67,7 +67,7 @@ public class ClientService extends Service implements Runnable {
         super.onCreate();
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         listener = new MyLocationListener();
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 2000, 0, listener);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 1000, 0, listener);
         //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 4000, 0, listener);
         message_List = new ArrayList<>();
         myThread= new Thread(this);
@@ -105,7 +105,8 @@ public class ClientService extends Service implements Runnable {
 
     protected void finalize() throws Throwable
     {
-        s.close(); // 끝날때 소켓 닫음
+        if(s!=null)
+            s.close(); // 끝날때 소켓 닫음
     }
 
 
@@ -211,17 +212,19 @@ public class ClientService extends Service implements Runnable {
     {
         return key_getMessage_ok;
     }
+    public boolean get_key_getlocation_ok() {return  key_location_ok;}
     public boolean get_key_gps_ok()
     {
         return key_gps_ok;
     }
     public Socket getSocket(){return s;}
+    public Location getMyLocation(){return lastKnownLocation;}
 
 
-    public String Jsonize(String name, Double lat,  Double lng) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
+    public String Jsonize(String id, String name, Double lat,  Double lng) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
     {
 
-        String json = new Gson().toJson(new Userdata(name,lat,lng)); //Data -> Gson -> json
+        String json = new Gson().toJson(new Userdata(id,name,lat,lng)); //Data -> Gson -> json
         return json;
 
     }
@@ -246,21 +249,17 @@ public class ClientService extends Service implements Runnable {
             {
                 Log.d("CSV", "n" +
                         "ot connect");
-//              tv.setText(String.format(Locale.KOREA,"%.3f",lastKnownLocation.getLatitude())+ " , "+ String.format(Locale.KOREA,"%.3f",lastKnownLocation.getLongitude()));
-                Toast.makeText(getApplicationContext(), "Not connected,  "+String.format(Locale.KOREA, "%.3f", lastKnownLocation.getLatitude()) + " , " + String.format(Locale.KOREA, "%.3f", lastKnownLocation.getLongitude()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "서버 연결 안됨, 위치 받아옴 "+String.format(Locale.KOREA, "%.3f", lastKnownLocation.getLatitude()) + " , " + String.format(Locale.KOREA, "%.3f", lastKnownLocation.getLongitude()), Toast.LENGTH_SHORT).show();
             }
             else { // 서버 연결 됫으면 메세지 받은 걸 텍스트 뷰에 뿌림
-                for(Userdata ud:message_List) {
-                    Log.d("CSV","Userlist: "+"name: " + ud.getName() + " lat: " + ud.getLat() + " lng: " + ud.getLng()+"\n");
-                //    Toast.makeText(getApplicationContext(),"Userlist: "+"name: " + ud.getName() + " lat: " + ud.getLat() + " lng: " + ud.getLng()+"\n",Toast.LENGTH_SHORT).show();
-                    // tv.append("name: " + ud.getName() + " lat: " + ud.getLat() + " lng: " + ud.getLng()+"\n");
-                }
-                Toast.makeText(getApplicationContext(),"메시지 받음",Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getApplicationContext(),"메시지 받음",Toast.LENGTH_SHORT).show();
+//                for(Userdata ud:message_List) {
+//                    Log.d("CSV","Userlist: "+"name: " + ud.getName() + " lat: " + ud.getLat() + " lng: " + ud.getLng()+"\n");
+//                }
             }
-            // Toast.makeText(getApplicationContext(), String.format(Locale.KOREA,"%.3f",lastKnownLocation.getLatitude())+ " , "+ String.format(Locale.KOREA,"%.3f",lastKnownLocation.getLongitude()), Toast.LENGTH_SHORT).show();
-            if( lastKnownLocation.hasAltitude()) { // lastKnownLocation이 위치를 받아왔고  키가 0이면 소켓통신 스타트
+            if( lastKnownLocation.hasAltitude()) { // lastKnownLocation이 위치를
 
-                j_outmsg = Jsonize(Build.USER,lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude());
+                j_outmsg = Jsonize(Build.ID, Build.USER,lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude());
                 key_location_ok=true;
 
             }
@@ -279,7 +278,7 @@ public class ClientService extends Service implements Runnable {
 
         @Override
         public void onProviderDisabled(String provider) {
-            Toast.makeText(getApplicationContext(),"GPS를 꺼짐.",Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(),"GPS 꺼짐.",Toast.LENGTH_LONG).show();
             key_gps_ok =false;
         }
     }
