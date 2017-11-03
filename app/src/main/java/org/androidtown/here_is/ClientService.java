@@ -53,6 +53,7 @@ public class ClientService extends Service implements Runnable {
     private boolean key_location_ok = false;
     private boolean key_gps_ok =false;
     private boolean key_socket_ok = false;
+    private int chat_room=0;
 
     class Mybinder extends Binder {
         ClientService getService() {
@@ -120,7 +121,7 @@ public class ClientService extends Service implements Runnable {
 
         while ( !myThread.isInterrupted()) //
         {
-            Log.d("CSV", "j_outmsg: "+j_outmsg);
+
             if(!locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER))
             {
                 Log.d("CSV", "no gps connect");
@@ -180,18 +181,25 @@ public class ClientService extends Service implements Runnable {
             return;
         }
         try {
-
+            Log.d("CSV", "j_outmsg: "+j_outmsg);
             outMsg.println(j_outmsg); // JSON화한 메시지를 서버로 보냄 (내정보, 내위치, 경도)
             j_inmsg = inMsg.readLine(); // 내가 메시지 보낸 이후 서버에서 보낸 메시지 수신
 
             message_List= gson.fromJson(j_inmsg, new TypeToken<ArrayList<Message>>() {}.getType()); // 서버에서 받은 메시지(모든 클라이언트의 이름,위치 메시지 리스트)를 JSON->Gosn-> ArrayList<Userdata>로 해서 저장
+            for (Message mg : message_List)
+            {
+                if(mg!=null&&mg.getChat_room()!=-1)
+                {
+                    chat_room = mg.getChat_room();
+                }
+            }
             key_getMessage_ok=true;
             Log.d("CSV","j_inmsg: "+j_inmsg);
-            Log.d("CSV","message_list: " +message_List.get(0).getLat());
 
         } catch (IOException e) {
             e.printStackTrace();
         }
+
 
         // return inmsg;
     }
@@ -212,7 +220,8 @@ public class ClientService extends Service implements Runnable {
     }
     public Socket getSocket(){return s;}
     public Location getMyLocation(){return lastKnownLocation;}
-    public void setJ_outmsg(String outmsg){j_outmsg =outmsg;}
+    public int getChat_room(){return chat_room;}
+    public void setJ_outmsg(String outmsg){j_outmsg=outmsg;}
 
 
     public String Jsonize(String id, String name, Double lat,  Double lng) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
@@ -253,8 +262,7 @@ public class ClientService extends Service implements Runnable {
 //                }
             }
             if( lastKnownLocation.hasAltitude()) { // lastKnownLocation이 위치를
-
-                j_outmsg = Jsonize(Build.ID, Build.USER,lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude());
+               j_outmsg = Jsonize(Build.ID, Build.USER,lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude());
                 key_location_ok=true;
 
             }

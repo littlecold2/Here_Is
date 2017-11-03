@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
@@ -64,12 +65,21 @@ public class MapActivity extends AppCompatActivity
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1; // 위치 권한 쓸때
     private TextView tv; // 아래 텍스트 출력 부분 컨트롤
     private ArrayList<MarkerOptions> L_Marker_userlist;
-    private ClientService CS;
-    private boolean isService = false;
+
     private UserLocating userLocating;
 
+    //################ Profile View ################
+    private LayoutInflater inflater;
+    private View profileView;
+    private TextView nicknameView;
+    private TextView introView;
+    private String targetID;
+    private String targetIntro;
+//################ Profile View ################
 
-
+//########service ########
+    private ClientService CS;
+    private boolean isService = false;
     ServiceConnection conn = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -83,7 +93,7 @@ public class MapActivity extends AppCompatActivity
             isService = false;
         }
     };
-
+//########service ########
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,22 +103,50 @@ public class MapActivity extends AppCompatActivity
         MapFragment mapFragment = (MapFragment)fragmentManager
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);  // 구글맵 프레그먼트 적용
-
+        //########service ########
         CS = new ClientService();
         Intent intent = new Intent(MapActivity.this, ClientService.class);
         bindService(intent, conn, Context.BIND_AUTO_CREATE);
         Toast.makeText(getApplicationContext(), "Service 시작 ", Toast.LENGTH_SHORT).show();
-
-       // Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-       // setSupportActionBar(toolbar);
 
         tv = (TextView) findViewById(R.id.DDtext);
         L_Marker_userlist =new ArrayList<>();
 
         userLocating = new UserLocating();
         userLocating.start();
-//        chatController =new ChatController();
-//        chatController.start();
+
+        //################ Profile View ################
+        inflater=getLayoutInflater();
+        profileView= inflater.inflate(R.layout.profile, null);
+        nicknameView = (TextView) profileView.findViewById(R.id.nicknameView);
+        introView = (TextView)profileView.findViewById((R.id.introView));
+
+        Button Btn_chatting = (Button) profileView.findViewById(R.id.chatBtn);
+        Button Btn_Streaming = (Button) profileView.findViewById(R.id.StreamingBtn);
+
+        Btn_chatting.setOnClickListener(new Button.OnClickListener()
+        { @Override
+        public void onClick(View view)
+        {
+            Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
+            intent.putExtra("id",targetID);
+            // +상대방 이미지 그런거?
+
+            CS.setJ_outmsg(Jsonize(Build.ID,targetID,"room_set"));
+
+            startActivity(intent);
+
+        }
+        });
+//        Btn_Streaming.setOnClickListener(new Button.OnClickListener()
+//        { @Override
+//        public void onClick(View view)
+//        {
+//
+//
+//        }
+//        });
+        //################ Profile View ################
 
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -145,6 +183,7 @@ public class MapActivity extends AppCompatActivity
         map = gMap;
         enableMyLocation(); // 내 위치 활성화
 
+        pickMark( new LatLng( 37.628, 126.825),"min","address");
         map.moveCamera(CameraUpdateFactory.newLatLng( new LatLng( 37.628, 126.825)));
         map.animateCamera(CameraUpdateFactory.zoomTo(16));
 
@@ -158,8 +197,22 @@ public class MapActivity extends AppCompatActivity
 //                Userdata ud =marker.getTag();
          //       Toast.makeText(getApplicationContext(),((Message)marker.getTag()).getId(),Toast.LENGTH_SHORT).show(); // 마커 클릭 시 걔 이름 출력
 
+                targetID =((Message)marker.getTag()).getId();
+//                targetIntro=;
+                AlertDialog.Builder buider= new AlertDialog.Builder(MapActivity.this); //AlertDialog.Builder 객체 생성
 
-                CS.setJ_outmsg(Jsonize(Build.ID,Build.USER,"채팅"));
+                buider.setTitle("Member Information"); //Dialog 제목
+
+                buider.setIcon(android.R.drawable.ic_menu_add); //제목옆의 아이콘 이미지(원하는 이미지 설정)
+
+                buider.setView(profileView);
+
+
+
+
+                AlertDialog dialog=buider.create();
+                dialog.show();
+               // CS.setJ_outmsg(Jsonize(Build.ID,Build.USER,"채팅"));
 //
                 // 토스트나 알럿 메세지...
                 return false;
@@ -301,11 +354,14 @@ public class MapActivity extends AppCompatActivity
                             message_List = CS.getMessage_List();
                             L_Marker_userlist.clear();
                             map.clear();
+
                             for (Message mg : message_List) {
-                                pickMark(new LatLng(mg.getLat(), mg.getLng()), mg.getName(), "인삿말", mg);
-                                if (mg.getChat_type().equals("room_set") && ( mg.getChat_id()[0].equals(Build.ID) || mg.getChat_id()[1].equals(Build.ID) )) {
-                                    tv.append("room : " + mg.getChat_room() + "\n");
+                                Log.d("MA", String.valueOf(mg.getChat_room()));
+                                if((int)mg.getChat_room() == 0)
+                                {
+                                    pickMark(new LatLng(mg.getLat(), mg.getLng()), mg.getName(), "인삿말", mg);
                                 }
+
                             }
 
 //                            for (Message mg : message_List) {
@@ -315,7 +371,7 @@ public class MapActivity extends AppCompatActivity
                         }
                         else if(isService && CS.get_key_getlocation_ok() && !CS.get_key_getMessage_ok())
                         {
-                            Toast.makeText(getApplicationContext(),"서버 안켜짐",Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(),"서버에서 값 못받음",Toast.LENGTH_SHORT).show();
                             tv.setText("");
                             L_Marker_userlist.clear();
                             map.clear();

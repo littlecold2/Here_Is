@@ -7,7 +7,6 @@
     >
     <!--#############이것은 지도상의 다른사람을 클릭했을 때 나오게 하기위한 뷰 구성 ############-->
     <TextView
-        android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right"
@@ -21,7 +20,7 @@
         />
 
     <ImageView
-        android:id="@+id/image"
+        android:id="@+id/profileImage"
         android:layout_width="211dp"
         android:layout_height="198dp"
         android:src="@drawable/image1"
@@ -31,6 +30,7 @@
         />
 
     <TextView
+        android:id="@+id/nicknameView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="        닉네임 : "
@@ -38,7 +38,7 @@
         android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/textView3"
+        android:id="@+id/introView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="        소개글 : "
@@ -53,7 +53,7 @@
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/button3"
+            android:id="@+id/chatBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="30dp"
@@ -67,6 +67,7 @@
             android:textStyle="bold" />
 
         <Button
+            android:id="@+id/chatStreaming"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="25dp"

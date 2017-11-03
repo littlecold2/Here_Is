@@ -9,7 +9,7 @@ public class Message {
     private String name;
     private Double latitude;
     private Double longitude;
-    private int chat_room=-1;
+    private int chat_room= 0;
     private String[] chat_id = {"",""};
     private String chat_text;
     private String chat_type = " ";
