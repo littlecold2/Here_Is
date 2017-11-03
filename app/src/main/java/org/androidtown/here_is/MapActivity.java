@@ -67,7 +67,6 @@ public class MapActivity extends AppCompatActivity
     private ClientService CS;
     private boolean isService = false;
     private UserLocating userLocating;
-    ChatController chatController;
 
 
 
@@ -160,7 +159,7 @@ public class MapActivity extends AppCompatActivity
          //       Toast.makeText(getApplicationContext(),((Message)marker.getTag()).getId(),Toast.LENGTH_SHORT).show(); // 마커 클릭 시 걔 이름 출력
 
 
-                CS.setJ_outmsg(Jsonize(Build.ID,Build.USER,CS.getMyLocation().getLatitude(),CS.getMyLocation().getLongitude(),true,Build.ID,((Message)marker.getTag()).getId(),"채팅"));
+                CS.setJ_outmsg(Jsonize(Build.ID,Build.USER,"채팅"));
 //
                 // 토스트나 알럿 메세지...
                 return false;
@@ -304,8 +303,8 @@ public class MapActivity extends AppCompatActivity
                             map.clear();
                             for (Message mg : message_List) {
                                 pickMark(new LatLng(mg.getLat(), mg.getLng()), mg.getName(), "인삿말", mg);
-                                if (mg.getkey_Chat() && mg.getChat_id()[0].equals(Build.ID) ) {
-                                    tv.append(mg.getId() + ": " + mg.getChat_text() + "\n");
+                                if (mg.getChat_type().equals("room_set") && ( mg.getChat_id()[0].equals(Build.ID) || mg.getChat_id()[1].equals(Build.ID) )) {
+                                    tv.append("room : " + mg.getChat_room() + "\n");
                                 }
                             }
 
@@ -330,35 +329,31 @@ public class MapActivity extends AppCompatActivity
         }
     }
 
-    public class ChatController extends Thread
+
+
+    // chat
+    public String Jsonize(String id, int chat_room,String chat_text, String chat_type) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
     {
-        List<Message> message_List;
-        public void run()
-        {
-            while (!chatController.isInterrupted()) {
-                if (isService && CS.get_key_getMessage_ok()) {
-                    message_List = CS.getMessage_List();
 
-                    for (Message mg : message_List) {
-                        if (mg.getkey_Chat() && (mg.getChat_id()[0] == Build.ID || mg.getChat_id()[0] == Build.ID)) {
+        String json = new Gson().toJson(new Message(id,chat_room,chat_text,chat_type)); //Data -> Gson -> json
+        return json;
 
-                            tv.append(mg.getId() + ": " + mg.getChat_text() + "\n");
-                        }
-                    }
-                }
-                else
-                {
-
-                }
-            }
-        }
     }
 
-
-    public String Jsonize(String id, String name, Double lat,  Double lng ,boolean key_chat, String id1,String id2,String chat_text) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
+    //setroom
+    public String Jsonize(String chat_id1, String chat_id2,String chat_type ) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
     {
 
-        String json = new Gson().toJson(new Message(id,name,lat,lng,key_chat,id1,id2,chat_text)); //Data -> Gson -> json
+        String json = new Gson().toJson(new Message(chat_id1,chat_id2,chat_type)); //Data -> Gson -> json
+        return json;
+
+    }
+
+    // logout
+    public String Jsonize(int chat_room ,String chat_type ) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
+    {
+
+        String json = new Gson().toJson(new Message(chat_room,chat_type)); //Data -> Gson -> json
         return json;
 
     }

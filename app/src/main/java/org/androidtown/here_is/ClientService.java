@@ -67,7 +67,7 @@ public class ClientService extends Service implements Runnable {
         super.onCreate();
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         listener = new MyLocationListener();
-     //   locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 4000, 0, listener);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 4000, 0, listener);
         //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 4000, 0, listener);
         message_List = new ArrayList<>();
         myThread= new Thread(this);
@@ -237,7 +237,7 @@ public class ClientService extends Service implements Runnable {
             locationManager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER, // 네트워크+gps 이용 업데이트
                     1000, //1초마다
-                    10, // 최소 거리 10미터
+                    0, // 최소 거리 10미터
                     listener
             );
             if(s==null) // 서버와 연결 안됬으면 현재 위치 텍스트뷰에
