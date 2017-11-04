@@ -40,7 +40,7 @@ public class ClientService extends Service implements Runnable {
 
     private List<Message> message_List;
 
-    private IBinder mBinder = new Mybinder();
+    private final IBinder mBinder = new Mybinder();
     private LocationManager locationManager;
     private MyLocationListener listener;
     private Thread myThread;
@@ -66,6 +66,7 @@ public class ClientService extends Service implements Runnable {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.d("chat","onCreate");
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         listener = new MyLocationListener();
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 4000, 0, listener);
@@ -77,10 +78,21 @@ public class ClientService extends Service implements Runnable {
     }
 
     @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+
+
+        Log.d("chat","onStartCommand");
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
+        Log.d("chat","onBind");
         return mBinder;
     }
+
+
 
     @Override
     public void onDestroy() {
@@ -106,8 +118,8 @@ public class ClientService extends Service implements Runnable {
 
     protected void finalize() throws Throwable
     {
-        if(s!=null)
-            s.close(); // 끝날때 소켓 닫음
+//        if(s!=null)
+//            s.close(); // 끝날때 소켓 닫음
     }
 
 
@@ -222,6 +234,9 @@ public class ClientService extends Service implements Runnable {
     public Location getMyLocation(){return lastKnownLocation;}
     public int getChat_room(){return chat_room;}
     public void setJ_outmsg(String outmsg){j_outmsg=outmsg;}
+    public void sendMessage(String outmsg){
+        Log.d("chat",outmsg);
+        outMsg.println(outmsg);}
 
 
     public String Jsonize(String id, String name, Double lat,  Double lng) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
@@ -262,7 +277,7 @@ public class ClientService extends Service implements Runnable {
 //                }
             }
             if( lastKnownLocation.hasAltitude()) { // lastKnownLocation이 위치를
-               j_outmsg = Jsonize(Build.ID, Build.USER,lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude());
+                j_outmsg = Jsonize(Build.ID, Build.USER,lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude());
                 key_location_ok=true;
 
             }

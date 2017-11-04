@@ -78,7 +78,7 @@ public class MapActivity extends AppCompatActivity
 //################ Profile View ################
 
 //########service ########
-    private ClientService CS;
+    protected ClientService CS;
     private boolean isService = false;
     ServiceConnection conn = new ServiceConnection() {
         @Override
@@ -103,12 +103,12 @@ public class MapActivity extends AppCompatActivity
         MapFragment mapFragment = (MapFragment)fragmentManager
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);  // 구글맵 프레그먼트 적용
-        //########service ########
+ //########service ########
         CS = new ClientService();
         Intent intent = new Intent(MapActivity.this, ClientService.class);
         bindService(intent, conn, Context.BIND_AUTO_CREATE);
         Toast.makeText(getApplicationContext(), "Service 시작 ", Toast.LENGTH_SHORT).show();
-
+//########service ########
         tv = (TextView) findViewById(R.id.DDtext);
         L_Marker_userlist =new ArrayList<>();
 
@@ -123,16 +123,18 @@ public class MapActivity extends AppCompatActivity
 
         Button Btn_chatting = (Button) profileView.findViewById(R.id.chatBtn);
         Button Btn_Streaming = (Button) profileView.findViewById(R.id.StreamingBtn);
+//
 
+
+        // 채팅버튼 누를 때
         Btn_chatting.setOnClickListener(new Button.OnClickListener()
         { @Override
         public void onClick(View view)
         {
             Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
-            intent.putExtra("id",targetID);
+            intent.putExtra("targetID",targetID);
             // +상대방 이미지 그런거?
 
-            CS.setJ_outmsg(Jsonize(Build.ID,targetID,"room_set"));
 
             startActivity(intent);
 
@@ -168,6 +170,23 @@ public class MapActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+
+
+    }
+
+    @Override
+    protected void onPause() {
+        unbindService(conn);
+
+        super.onPause();
+
+    }
+
+    @Override
+    protected void onPostResume() {
+        Intent intent = new Intent(MapActivity.this, ClientService.class);
+        bindService(intent, conn, Context.BIND_AUTO_CREATE);
+        super.onPostResume();
     }
 
     @Override
@@ -263,6 +282,11 @@ public class MapActivity extends AppCompatActivity
         public void onClick(View view)
         { //위치검색 (PlacePicker)
            // MarkerPoints.clear(); // 마커 저장 해논 리스트 클리어
+            //테스트용
+            Intent sintent = new Intent(getApplicationContext(), ChattingActivity.class);
+            sintent.putExtra("targetID",Build.ID);
+            startActivity(sintent);
+
             if(CS.get_key_getlocation_ok())
                 map.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(CS.getMyLocation().getLatitude(),CS.getMyLocation().getLongitude())));
             else
@@ -337,7 +361,7 @@ public class MapActivity extends AppCompatActivity
             // 현재 UI 스레드가 아니기 때문에 메시지 큐에 Runnable을 등록 함
             while (!userLocating.isInterrupted()) {
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(3000);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     e.printStackTrace();
@@ -357,7 +381,7 @@ public class MapActivity extends AppCompatActivity
 
                             for (Message mg : message_List) {
                                 Log.d("MA", String.valueOf(mg.getChat_room()));
-                                if((int)mg.getChat_room() == 0)
+                                if(mg.getChat_room() == 0)
                                 {
                                     pickMark(new LatLng(mg.getLat(), mg.getLng()), mg.getName(), "인삿말", mg);
                                 }
@@ -410,6 +434,13 @@ public class MapActivity extends AppCompatActivity
     {
 
         String json = new Gson().toJson(new Message(chat_room,chat_type)); //Data -> Gson -> json
+        return json;
+
+    }
+    public String Jsonize(String id, String name, Double lat,  Double lng) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
+    {
+
+        String json = new Gson().toJson(new Message(id,name,lat,lng)); //Data -> Gson -> json
         return json;
 
     }
