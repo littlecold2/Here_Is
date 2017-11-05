@@ -22,20 +22,20 @@ import com.google.gson.Gson;
 public class ChattingActivity extends AppCompatActivity implements Runnable {
 
 
-    Thread my_thread;
+    private Thread my_thread;
     private String targetID;
 
     //########service ########
     private ClientService CS ;
     private boolean isService = false;
 
-    ImageView profieImg;
-    TextView idTextView;
-    TextView messageView;
-    EditText sendEditText;
+    private ImageView profieImg;
+    private TextView idTextView;
+    private TextView messageView;
+    private EditText sendEditText;
 
     //########service ########
-    ServiceConnection conn = new ServiceConnection() {
+    private ServiceConnection conn = new ServiceConnection() {
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
             ClientService.Mybinder mb =(ClientService.Mybinder) service;
@@ -78,6 +78,18 @@ public class ChattingActivity extends AppCompatActivity implements Runnable {
 
 
         Button sendBtn = (Button)findViewById(R.id.sendBtn);
+        Button OUTBtn = (Button)findViewById(R.id.OUTbutton);
+        Button returnBtn = (Button)findViewById(R.id.returnbutton);
+
+        returnBtn.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onBackPressed();
+
+            }
+        });
+
+
         sendBtn.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -85,18 +97,55 @@ public class ChattingActivity extends AppCompatActivity implements Runnable {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        CS.sendMessage(Jsonize(Build.ID,CS.getChat_room(),"chat",sendEditText.getText().toString()));
-                        runOnUiThread(new Runnable() {
-                            public void run() {
-                            sendEditText.setText("");
-                            }
-                        });
+                        if(isService &&CS.get_key_getMessage_ok()&&CS.getChat_room()!=-1) {
+                            CS.sendMessage(Jsonize(Build.ID, CS.getChat_room(), "chat", sendEditText.getText().toString()));
+                            runOnUiThread(new Runnable() {
+                                public void run() {
+                                    sendEditText.setText("");
+
+                                }
+                            });
+                        }
+                        else if(CS.getChat_room()==-1)
+                        {
+                            runOnUiThread(new Runnable() {
+
+                                public void run() {
+                                    sendEditText.setText("");
+                                    CS.set_appendChat_text("채팅방 비어있음.\n");
+                                }
+                            });
+
+                        }
+
                     }
                 }).start();
                 //......
             }
         });
+        OUTBtn.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(isService &&CS.get_key_getMessage_ok()) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            CS.sendMessage(Jsonize(CS.getChat_room(), "logout"));
+//                            my_thread.interrupt();
+//                            unbindService(conn);
+                            //CS.setChat_text_clear();
+                        }
+                    }).start();
+                }
+               // onBackPressed();
+                finish();
+            }
+        });
+
     } // onCreate
+
+
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -104,22 +153,25 @@ public class ChattingActivity extends AppCompatActivity implements Runnable {
         my_thread = new Thread(this);
         my_thread.start();
     }
+
+
     @Override
     protected void onDestroy() {
         Log.d("chat","destroy");
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                CS.sendMessage(Jsonize(CS.getChat_room(),"logout"));
-                CS.set_key_chat(false);
-                CS.setChat_text_clear();
-            }
-        }).start();
+//        if(CS.get_key_getMessage_ok()) {
+//            new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    CS.sendMessage(Jsonize(CS.getChat_room(), "logout"));
+//                    CS.set_key_chat(false);
+//                    //CS.setChat_text_clear();
+//                }
+//            }).start();
+//        }
 
         my_thread.interrupt();
         unbindService(conn);
-
 
         super.onDestroy();
     }
@@ -130,7 +182,8 @@ public class ChattingActivity extends AppCompatActivity implements Runnable {
 
         while(!my_thread.isInterrupted()) {
             try{
-                Thread.sleep(2000);
+                Thread.sleep(500);
+                Log.d("chat", "chat_sleep");
             }catch (InterruptedException e) {
                 e.printStackTrace();
                 Thread.currentThread().interrupt();
@@ -138,10 +191,10 @@ public class ChattingActivity extends AppCompatActivity implements Runnable {
                 runOnUiThread(new Runnable() {
 
                     public void run() {
-                        if(CS.get_key_chat_ok()) {
-                            messageView.append(CS.getChat_text());
-                            CS.setChat_text_clear();
+                        if(isService) {
+                            messageView.setText(CS.getChat_text());
                         }
+
                     }
                 });
         }

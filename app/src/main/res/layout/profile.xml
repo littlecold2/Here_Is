@@ -4,19 +4,20 @@
     android:layout_height="match_parent"
     android:orientation ="vertical"
     android:layout_margin="45dp"
+    android:weightSum="11"
     >
     <!--#############이것은 지도상의 다른사람을 클릭했을 때 나오게 하기위한 뷰 구성 ############-->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right"
-
         android:text="프로필"
         android:textAllCaps="true"
         android:textSize="40sp"
         android:textStyle="bold"
         android:layout_marginTop="20dp"
         android:layout_marginRight="20dp"
+        android:layout_weight="1"
         />
 
     <ImageView
@@ -25,53 +26,54 @@
         android:layout_height="198dp"
         android:src="@drawable/image1"
         android:layout_gravity = "center"
-        android:layout_marginBottom="50dp"
-        android:layout_marginTop="20dp"
+        android:layout_weight="3"
         />
 
     <TextView
         android:id="@+id/nicknameView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="        닉네임 : "
-        android:textSize="30sp"
-        android:textStyle="bold" />
+        android:text="    닉네임 : "
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_weight="1.5"/>
 
     <TextView
         android:id="@+id/introView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="        소개글 : "
-        android:layout_marginTop="20dp"
-        android:textSize="30sp"
-        android:textStyle="bold" />
+        android:text="    소개글 : "
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_weight="1.5"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_weight="4"
+        android:weightSum="3">
 
         <Button
             android:id="@+id/chatBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="30dp"
-            android:layout_marginRight="25dp"
             android:layout_weight="1"
-
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
             android:backgroundTint="@android:color/darker_gray"
             android:lineSpacingExtra="8sp"
             android:text="채팅"
-            android:textSize="25sp"
-            android:textStyle="bold" />
+            android:textSize="20sp"
+            android:textStyle="bold"
+            />
 
         <Button
             android:id="@+id/chatStreaming"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="25dp"
-            android:layout_marginRight="30dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
             android:layout_weight="1"
             android:backgroundTint="@android:color/darker_gray"
             android:text="스트리밍"

@@ -72,15 +72,7 @@
                     android:textSize="12dp" />
 
             </ScrollView>
-            <EditText
-                android:id="@+id/chattext"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="10dp"
-                android:hint="채팅 말"
-                android:focusable="false"
-                android:focusableInTouchMode="false"
-                android:layout_weight="0.1"/>
+
 
         </LinearLayout>
 

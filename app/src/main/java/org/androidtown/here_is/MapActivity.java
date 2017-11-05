@@ -193,46 +193,56 @@ public class MapActivity extends AppCompatActivity
             @Override //마커 클릭시
             public boolean onMarkerClick(Marker marker) {
                 //################ Profile View ################
-
-                inflater=getLayoutInflater();
-                profileView= inflater.inflate(R.layout.profile, null);
-                nicknameView = (TextView) profileView.findViewById(R.id.nicknameView);
-                introView = (TextView)profileView.findViewById((R.id.introView));
-                targetID =((Message)marker.getTag()).getId();
-                Btn_chatting = (Button) profileView.findViewById(R.id.chatBtn);
-                Btn_Streaming = (Button) profileView.findViewById(R.id.StreamingBtn);
-                // 채팅버튼 누를 때
-                Btn_chatting.setOnClickListener(new Button.OnClickListener()
-                { @Override
-                public void onClick(View view)
+                if(((Message)marker.getTag()).getId().equals(Build.ID))
                 {
+                    Toast.makeText(getApplicationContext(), "자신의 마커 입니다.", Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    inflater = getLayoutInflater();
+                    profileView = inflater.inflate(R.layout.profile, null);
+                    nicknameView = (TextView) profileView.findViewById(R.id.nicknameView);
+                    introView = (TextView) profileView.findViewById((R.id.introView));
+                    targetID = ((Message) marker.getTag()).getId();
+                    Btn_chatting = (Button) profileView.findViewById(R.id.chatBtn);
+                    Btn_Streaming = (Button) profileView.findViewById(R.id.StreamingBtn);
+                    // 채팅버튼 누를 때
+                    Btn_chatting.setOnClickListener(new Button.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
 //                    Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
 //                    // +상대방 이미지 그런거?
 //                    startActivity(intent);
-
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            CS.sendMessage(Jsonize(Build.ID,targetID,"room_set"));
+                        if(CS.getChat_room()==-1) {
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    CS.sendMessage(Jsonize(Build.ID, targetID, "room_set"));
+                                }
+                            }).start();
                         }
-                    }).start();
+                        else
+                        {
+                            Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                            startActivity(intent);
+                        }
+                        }
+                    });
+                    AlertDialog.Builder buider = new AlertDialog.Builder(MapActivity.this); //AlertDialog.Builder 객체 생성
 
-                }
-                });
-                AlertDialog.Builder buider= new AlertDialog.Builder(MapActivity.this); //AlertDialog.Builder 객체 생성
+                    buider.setTitle("Member Information"); //Dialog 제목
 
-                buider.setTitle("Member Information"); //Dialog 제목
+                    buider.setIcon(android.R.drawable.ic_menu_add); //제목옆의 아이콘 이미지(원하는 이미지 설정)
+                    nicknameView.setText(targetID);
+                    introView.setText(((Message) marker.getTag()).getName());
+                    buider.setView(profileView);
 
-                buider.setIcon(android.R.drawable.ic_menu_add); //제목옆의 아이콘 이미지(원하는 이미지 설정)
-                nicknameView.setText(targetID);
-                introView.setText(((Message) marker.getTag()).getName());
-                buider.setView(profileView);
-
-                AlertDialog dialog=buider.create();
-                dialog.show();
-                //################ Profile View ################
+                    AlertDialog dialog = buider.create();
+                    dialog.show();
+                    //################ Profile View ################
 
 //
+                }
                 // 토스트나 알럿 메세지...
                 return false;
             }
@@ -370,26 +380,31 @@ public class MapActivity extends AppCompatActivity
                 runOnUiThread(new Runnable() {
                     public void run() {
                         List<Message> message_List;
-                        if(CS.get_key_pop_ok())
-                        {
-                            Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
-                            startActivity(intent);
-                            CS.set_key_pop(false);
-                        }
+//                        if(CS.get_key_pop_ok())
+//                        {
+//                            Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
+//                            startActivity(intent);
+//                            CS.set_key_pop(false);
+//                        }
                         if(!CS.get_key_gps_ok())
                         {
                             Toast.makeText(getApplicationContext(),"GPS를 켜주세요.",Toast.LENGTH_SHORT).show();
                             tv.setText("");
                         }
+                        else if (!CS.get_key_getlocation_ok())
+                        {
+                            Toast.makeText(getApplicationContext(), "위치 확인중...", Toast.LENGTH_SHORT).show();
+                        }
                         else if (isService&& CS.get_key_getMessage_ok()) {
                             message_List = CS.getLocation_List();
                             L_Marker_userlist.clear();
                             map.clear();
-
+                            tv.setText("");
                             for (Message mg : message_List) {
                                 if(mg.getChat_room() == -1)
                                 {
                                     pickMark(new LatLng(mg.getLat(), mg.getLng()), mg.getName(), "인삿말", mg);
+                                    tv.append("name: "+mg.getName()+ "위치: "+mg.getLat()+", "+mg.getLng());
                                 }
 
                             }
@@ -545,6 +560,9 @@ public class MapActivity extends AppCompatActivity
         } else if (id == R.id.stream) {
             Toast.makeText(getApplicationContext(),"스트리밍",Toast.LENGTH_LONG).show();
         } else if (id == R.id.chat) {
+            Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
             Toast.makeText(getApplicationContext(),"채팅",Toast.LENGTH_LONG).show();
         } else if (id == R.id.etc) {
             Toast.makeText(getApplicationContext(),"기타",Toast.LENGTH_LONG).show();

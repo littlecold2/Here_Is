@@ -40,7 +40,7 @@ public class ClientService extends Service implements Runnable {
 
     private List<Message> message_List;
     private List<Message> location_List;
-    private String chat_text="";
+    private String chat_text="채팅방 비어있음.";
 
     private final IBinder mBinder = new Mybinder();
     private LocationManager locationManager;
@@ -56,7 +56,6 @@ public class ClientService extends Service implements Runnable {
     private boolean key_gps_ok =false;
     private boolean key_socket_ok = false;
     private boolean key_chat_ok =false;
-    private boolean key_pop_chat =false;
     private int chat_room=-1;
 
 
@@ -218,17 +217,18 @@ public class ClientService extends Service implements Runnable {
                     chat_text="";
                     chat_room=message_List.get(0).getChat_room();
                     sendMessage(Jsonize(Build.ID,getChat_room(),"chat", "님이 입장 하였습니다."));
-                    key_pop_chat =true;
+                    Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    startActivity(intent);
             }
             else if(message_List.get(0).getChat_type().equals("chat")&&chat_room==message_List.get(0).getChat_room())
             {
+
                 chat_text += message_List.get(0).getId()+(": ")+ message_List.get(0).getChat_text()+("\n");
-                key_chat_ok =true;
             }
             else if(message_List.get(0).getChat_type().equals("logout")&&chat_room==message_List.get(0).getChat_room())
             {
-                chat_text += ("상대방이 채팅방을 떠났습니다.\n");
-                key_chat_ok =true;
+                chat_text+="상대방이 채팅방을 떠났습니다.\n";
                 chat_room =-1;
             }
             key_getMessage_ok=true;
@@ -252,11 +252,7 @@ public class ClientService extends Service implements Runnable {
     {
         return chat_text;
     }
-    public void setChat_text_clear()
-    {
-        chat_text="";
-        key_chat_ok=false;
-    }
+    public void set_appendChat_text(String chat_text){this.chat_text +=chat_text;}
     public boolean get_key_getMessage_ok()
     {
         return key_getMessage_ok;
@@ -267,22 +263,9 @@ public class ClientService extends Service implements Runnable {
         return key_gps_ok;
     }
     public Socket getSocket(){return s;}
-    public boolean get_key_chat_ok()
-    {
-        return key_chat_ok;
-    }
-    public void set_key_chat(boolean key_chat_ok)
-    {
-        this.key_chat_ok=key_chat_ok;
-    }
-    public boolean get_key_pop_ok(){return key_pop_chat;}
-    public void set_key_pop(boolean key_pop_chat){this.key_pop_chat=key_pop_chat;}
     public Location getMyLocation(){return lastKnownLocation;}
     public int getChat_room(){return chat_room;}
-    public void setJ_outmsg(String outmsg){j_outmsg=outmsg;}
-    public void sendMessage(String outmsg) {
-        Log.d("chat",outmsg);
-        outMsg.println(outmsg);}
+    public void sendMessage(String outmsg) {Log.d("chat",outmsg); outMsg.println(outmsg);}
 
 
     public String Jsonize(String id, String name, Double lat,  Double lng,String chat_type) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
