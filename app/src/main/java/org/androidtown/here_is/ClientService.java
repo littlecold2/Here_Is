@@ -39,6 +39,8 @@ public class ClientService extends Service implements Runnable {
     private int a_targetPort = 9000; // 서버 port
 
     private List<Message> message_List;
+    private List<Message> location_List;
+    private String chat_text="";
 
     private final IBinder mBinder = new Mybinder();
     private LocationManager locationManager;
@@ -53,7 +55,10 @@ public class ClientService extends Service implements Runnable {
     private boolean key_location_ok = false;
     private boolean key_gps_ok =false;
     private boolean key_socket_ok = false;
-    private int chat_room=0;
+    private boolean key_chat_ok =false;
+    private boolean key_pop_chat =false;
+    private int chat_room=-1;
+
 
     class Mybinder extends Binder {
         ClientService getService() {
@@ -71,6 +76,7 @@ public class ClientService extends Service implements Runnable {
         listener = new MyLocationListener();
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 4000, 0, listener);
         //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 4000, 0, listener);
+        location_List = new ArrayList<>();
         message_List = new ArrayList<>();
         myThread= new Thread(this);
         myThread.start();
@@ -147,9 +153,11 @@ public class ClientService extends Service implements Runnable {
                 key_getMessage_ok =false;
                 connectServer(a_targetIp, a_targetPort);
             }
-            if(key_location_ok&&s!=null&&!s.isClosed()) {
+            if(get_key_getlocation_ok()&&s!=null&&!s.isClosed()) {
                     // 서버에 연결 하는 함수 받아온 ip.port 넘겨줌
                     Log.d("CSV", "msging");
+                    if(!key_getMessage_ok)
+                        sendMessage(j_outmsg);
                     MessageController(); // 서버에 현재 위치정보 담아서 보냄
 
             }
@@ -194,19 +202,38 @@ public class ClientService extends Service implements Runnable {
         }
         try {
             Log.d("CSV", "j_outmsg: "+j_outmsg);
-            outMsg.println(j_outmsg); // JSON화한 메시지를 서버로 보냄 (내정보, 내위치, 경도)
+             // JSON화한 메시지를 서버로 보냄 (내정보, 내위치, 경도)
             j_inmsg = inMsg.readLine(); // 내가 메시지 보낸 이후 서버에서 보낸 메시지 수신
 
             message_List= gson.fromJson(j_inmsg, new TypeToken<ArrayList<Message>>() {}.getType()); // 서버에서 받은 메시지(모든 클라이언트의 이름,위치 메시지 리스트)를 JSON->Gosn-> ArrayList<Userdata>로 해서 저장
-            for (Message mg : message_List)
+
+            if(message_List.get(0).getChat_type().equals("location"))
             {
-                if(mg!=null&&mg.getChat_room()!=-1)
-                {
-                    chat_room = mg.getChat_room();
-                }
+                outMsg.println(j_outmsg);
+                location_List=message_List;
+            }
+            else if(message_List.get(0).getChat_type().equals("room_set")&& chat_room==-1
+                    &&(message_List.get(0).getChat_id()[0].equals(Build.ID)||message_List.get(0).getChat_id()[1].equals(Build.ID)))
+            {
+                    chat_text="";
+                    chat_room=message_List.get(0).getChat_room();
+                    sendMessage(Jsonize(Build.ID,getChat_room(),"chat", "님이 입장 하였습니다."));
+                    key_pop_chat =true;
+            }
+            else if(message_List.get(0).getChat_type().equals("chat")&&chat_room==message_List.get(0).getChat_room())
+            {
+                chat_text += message_List.get(0).getId()+(": ")+ message_List.get(0).getChat_text()+("\n");
+                key_chat_ok =true;
+            }
+            else if(message_List.get(0).getChat_type().equals("logout")&&chat_room==message_List.get(0).getChat_room())
+            {
+                chat_text += ("상대방이 채팅방을 떠났습니다.\n");
+                key_chat_ok =true;
+                chat_room =-1;
             }
             key_getMessage_ok=true;
             Log.d("CSV","j_inmsg: "+j_inmsg);
+            Log.d("chat","now chatroom: " +chat_room);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -217,9 +244,18 @@ public class ClientService extends Service implements Runnable {
     }
 
 
-    public List<Message> getMessage_List()
+    public List<Message> getLocation_List()
     {
-        return message_List;
+        return location_List;
+    }
+    public String getChat_text()
+    {
+        return chat_text;
+    }
+    public void setChat_text_clear()
+    {
+        chat_text="";
+        key_chat_ok=false;
     }
     public boolean get_key_getMessage_ok()
     {
@@ -231,18 +267,36 @@ public class ClientService extends Service implements Runnable {
         return key_gps_ok;
     }
     public Socket getSocket(){return s;}
+    public boolean get_key_chat_ok()
+    {
+        return key_chat_ok;
+    }
+    public void set_key_chat(boolean key_chat_ok)
+    {
+        this.key_chat_ok=key_chat_ok;
+    }
+    public boolean get_key_pop_ok(){return key_pop_chat;}
+    public void set_key_pop(boolean key_pop_chat){this.key_pop_chat=key_pop_chat;}
     public Location getMyLocation(){return lastKnownLocation;}
     public int getChat_room(){return chat_room;}
     public void setJ_outmsg(String outmsg){j_outmsg=outmsg;}
-    public void sendMessage(String outmsg){
+    public void sendMessage(String outmsg) {
         Log.d("chat",outmsg);
         outMsg.println(outmsg);}
 
 
-    public String Jsonize(String id, String name, Double lat,  Double lng) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
+    public String Jsonize(String id, String name, Double lat,  Double lng,String chat_type) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
     {
 
-        String json = new Gson().toJson(new Message(id,name,lat,lng)); //Data -> Gson -> json
+        String json = new Gson().toJson(new Message(id,name,lat,lng,chat_type)); //Data -> Gson -> json
+        return json;
+
+    }
+    // chat
+    public String Jsonize(String id, int chat_room,String chat_type,String chat_text) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
+    {
+
+        String json = new Gson().toJson(new Message(id,chat_room,chat_type,chat_text)); //Data -> Gson -> json
         return json;
 
     }
@@ -277,7 +331,7 @@ public class ClientService extends Service implements Runnable {
 //                }
             }
             if( lastKnownLocation.hasAltitude()) { // lastKnownLocation이 위치를
-                j_outmsg = Jsonize(Build.ID, Build.USER,lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude());
+                j_outmsg = Jsonize(Build.ID, Build.USER,lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude(),"location");
                 key_location_ok=true;
 
             }

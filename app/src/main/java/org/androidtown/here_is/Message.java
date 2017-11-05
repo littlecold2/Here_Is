@@ -9,7 +9,7 @@ public class Message {
     private String name;
     private Double latitude;
     private Double longitude;
-    private int chat_room= 0;
+    private int chat_room= -1;
     private String[] chat_id = {"",""};
     private String chat_text;
     private String chat_type = " ";
@@ -51,12 +51,13 @@ public class Message {
 
 
     //location info
-    Message(String id,String name, Double lat,Double lng)
+    Message(String id,String name, Double lat,Double lng,String chat_type)
     {
         this.id  = id;
         this.name = name;
         latitude = lat;
         longitude= lng;
+        this.chat_type =chat_type;
     }
     String getId()
     {

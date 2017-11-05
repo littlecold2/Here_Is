@@ -10,7 +10,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -20,32 +22,34 @@ import com.google.gson.Gson;
 public class ChattingActivity extends AppCompatActivity implements Runnable {
 
 
+    Thread my_thread;
     private String targetID;
 
     //########service ########
     private ClientService CS ;
     private boolean isService = false;
-    ServiceConnection conn = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            ClientService.Mybinder mb =(ClientService.Mybinder) service;
-            // 서비스와 연결되었을 때 호출되는 메서드
-            CS = mb.getService(); // 서비스가 제공하는 메소드 호출하여
-            isService =true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            isService = false;
-        }
-    };
-    //########service ########
 
     ImageView profieImg;
     TextView idTextView;
     TextView messageView;
     EditText sendEditText;
 
+    //########service ########
+    ServiceConnection conn = new ServiceConnection() {
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {
+            ClientService.Mybinder mb =(ClientService.Mybinder) service;
+            // 서비스와 연결되었을 때 호출되는 메서드
+            CS = mb.getService(); // 서비스가 제공하는 메소드 호출하여
+            isService =true;
+        }
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+            isService = false;
+        }
+    };
+    //########service ########
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,53 +72,83 @@ public class ChattingActivity extends AppCompatActivity implements Runnable {
             }
         });
         Intent getintent = getIntent();
-        targetID = getintent.getExtras().getString("targetID");
+       // targetID = getintent.getExtras().getString("targetID");
         Intent intent = new Intent(ChattingActivity.this, ClientService.class);
         bindService(intent, conn, Context.BIND_AUTO_CREATE);
 
 
+        Button sendBtn = (Button)findViewById(R.id.sendBtn);
+        sendBtn.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View view) {
 
-        Thread my_thread = new Thread(this);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        CS.sendMessage(Jsonize(Build.ID,CS.getChat_room(),"chat",sendEditText.getText().toString()));
+                        runOnUiThread(new Runnable() {
+                            public void run() {
+                            sendEditText.setText("");
+                            }
+                        });
+                    }
+                }).start();
+                //......
+            }
+        });
+    } // onCreate
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        my_thread = new Thread(this);
         my_thread.start();
-
-
     }
-
     @Override
-    protected void onPause() {
+    protected void onDestroy() {
+        Log.d("chat","destroy");
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                CS.sendMessage(Jsonize(CS.getChat_room(),"logout"));
+                CS.set_key_chat(false);
+                CS.setChat_text_clear();
+            }
+        }).start();
+
+        my_thread.interrupt();
         unbindService(conn);
-        super.onPause();
 
-    }
 
-    @Override
-    protected void onPostResume() {
-        Intent intent = new Intent(ChattingActivity.this, ClientService.class);
-        bindService(intent, conn, Context.BIND_AUTO_CREATE);
-        super.onPostResume();
+        super.onDestroy();
     }
 
     @Override
     public void run() {
+        Log.d("chat", String.valueOf(isService));
 
-//        Log.d("chat", String.valueOf(isService));
-////        CS = new ClientService();
-//        Intent intent = new Intent(ChattingActivity.this, ClientService.class);
-//        bindService(intent, conn, Context.BIND_AUTO_CREATE);
-//
-//        Log.d("chat", String.valueOf(isService));
-        while(true) {
-            try {
+        while(!my_thread.isInterrupted()) {
+            try{
                 Thread.sleep(2000);
-            } catch (InterruptedException e) {
+            }catch (InterruptedException e) {
                 e.printStackTrace();
+                Thread.currentThread().interrupt();
             }
-         //   if (CS.get_key_getMessage_ok())
-              //  super.CS.sendMessage(Jsonize(Build.ID, targetID, "room_set"));
+                runOnUiThread(new Runnable() {
+
+                    public void run() {
+                        if(CS.get_key_chat_ok()) {
+                            messageView.append(CS.getChat_text());
+                            CS.setChat_text_clear();
+                        }
+                    }
+                });
         }
-       // Log.d("chat", String.valueOf(CS.getMyLocation().getLatitude()));
-        //CS.sendMessage(Jsonize(Build.ID,targetID,"room_set"));
+
     }
+
+
 
 
     //setroom
@@ -125,4 +159,21 @@ public class ChattingActivity extends AppCompatActivity implements Runnable {
         return json;
 
     }
+    // chat
+    public String Jsonize(String id, int chat_room,String chat_type,String chat_text) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
+    {
+
+        String json = new Gson().toJson(new Message(id,chat_room,chat_type,chat_text)); //Data -> Gson -> json
+        return json;
+
+    }
+    // logout
+    public String Jsonize(int chat_room ,String chat_type ) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
+    {
+
+        String json = new Gson().toJson(new Message(chat_room,chat_type)); //Data -> Gson -> json
+        return json;
+
+    }
+
 }
