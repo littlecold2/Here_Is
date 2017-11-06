@@ -182,7 +182,7 @@ public class ChattingActivity extends AppCompatActivity implements Runnable {
 
         while(!my_thread.isInterrupted()) {
             try{
-                Thread.sleep(500);
+                Thread.sleep(1000);
                 Log.d("chat", "chat_sleep");
             }catch (InterruptedException e) {
                 e.printStackTrace();
@@ -194,6 +194,7 @@ public class ChattingActivity extends AppCompatActivity implements Runnable {
                         if(isService) {
                             messageView.setText(CS.getChat_text());
                         }
+
 
                     }
                 });

@@ -140,7 +140,7 @@ public class MapActivity extends AppCompatActivity
 
 
 
-
+        // 편지 아이콘
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -149,6 +149,7 @@ public class MapActivity extends AppCompatActivity
                         .setAction("Action", null).show();
             }
         });
+        fab.setVisibility(View.INVISIBLE); // 메시지 오면 비지블되게 하는거지?
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -171,6 +172,17 @@ public class MapActivity extends AppCompatActivity
     @Override
     protected void onDestroy() {
         Log.d("mapactivity","destroy");
+        if(isService &&CS.get_key_getMessage_ok()) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    CS.sendMessage(Jsonize(CS.getChat_room(), "logout"));
+//                            my_thread.interrupt();
+//                            unbindService(conn);
+                    //CS.setChat_text_clear();
+                }
+            }).start();
+        }
         userLocating.interrupt();
 
         super.onDestroy();
@@ -438,15 +450,14 @@ public class MapActivity extends AppCompatActivity
 
     }
 
-
-    public String Jsonize(String id, String name, Double lat,  Double lng,String chat_type) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
+    // logout
+    public String Jsonize(int chat_room ,String chat_type ) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
     {
 
-        String json = new Gson().toJson(new Message(id,name,lat,lng,chat_type)); //Data -> Gson -> json
+        String json = new Gson().toJson(new Message(chat_room,chat_type)); //Data -> Gson -> json
         return json;
 
     }
-
 
 
 

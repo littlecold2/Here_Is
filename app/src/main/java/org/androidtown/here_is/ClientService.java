@@ -223,8 +223,8 @@ public class ClientService extends Service implements Runnable {
             }
             else if(message_List.get(0).getChat_type().equals("chat")&&chat_room==message_List.get(0).getChat_room())
             {
-
                 chat_text += message_List.get(0).getId()+(": ")+ message_List.get(0).getChat_text()+("\n");
+
             }
             else if(message_List.get(0).getChat_type().equals("logout")&&chat_room==message_List.get(0).getChat_room())
             {
