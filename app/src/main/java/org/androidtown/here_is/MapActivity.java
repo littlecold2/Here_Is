@@ -3,10 +3,12 @@ package org.androidtown.here_is;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.hardware.usb.UsbRequest;
@@ -23,6 +25,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -65,7 +68,7 @@ public class MapActivity extends AppCompatActivity
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1; // 위치 권한 쓸때
     private TextView tv; // 아래 텍스트 출력 부분 컨트롤
     private ArrayList<MarkerOptions> L_Marker_userlist;
-
+    private FloatingActionButton fab;
     private UserLocating userLocating;
 
     //################ Profile View ################
@@ -97,6 +100,9 @@ public class MapActivity extends AppCompatActivity
     };
 //########service ########
 
+
+
+
 //    @Override
 //    protected void onPause() {
 //        unbindService(conn);
@@ -105,12 +111,18 @@ public class MapActivity extends AppCompatActivity
 //
 //    }
 //
-//    @Override
-//    protected void onPostResume() {
-//        Intent intent = new Intent(MapActivity.this, ClientService.class);
-//        bindService(intent, conn, Context.BIND_AUTO_CREATE);
-//        super.onPostResume();
-//    }
+
+
+//브로드 캐스트
+    private BroadcastReceiver mMessageReceiver = null;
+    private static final String EXTRA_GET_MESSAGE ="current_chat_message";
+    private static final String EXTRA_ALL_MESSAGE ="all_chat_message";
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("EVENT_SNACKBAR"));
+    }
+// 브로드 캐스트
 
     @Override
     protected void onStart() {
@@ -141,15 +153,33 @@ public class MapActivity extends AppCompatActivity
 
 
         // 편지 아이콘
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setVisibility(View.INVISIBLE);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                fab.setVisibility(View.INVISIBLE);
+                Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+
             }
         });
-        fab.setVisibility(View.INVISIBLE); // 메시지 오면 비지블되게 하는거지?
+         // 메시지 오면 비지블되게 하는거지?
+//브로드캐스트
+        mMessageReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String message = intent.getExtras().getString(EXTRA_GET_MESSAGE);
+                Log.d("chat","msg: "+message);
+                Snackbar.make(getWindow().getDecorView().getRootView(), message, Snackbar.LENGTH_SHORT)
+                        .setAction("Action", null).show();
+                    fab.setVisibility(View.VISIBLE); // 메시지 오면 편지아이콘 나오게
+            }
+        };
+// 브로드캐스트
+
+
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -161,6 +191,8 @@ public class MapActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+
+
 //        Intent sintent = new Intent(getApplicationContext(), ChattingActivity.class);
 //           sintent.putExtra("targetID",Build.ID);
 //           startActivity(sintent);
@@ -168,7 +200,11 @@ public class MapActivity extends AppCompatActivity
     }
 
 
-
+    @Override
+    protected void onResume() {
+        super.onResume();
+        fab.setVisibility(View.INVISIBLE);
+    }
     @Override
     protected void onDestroy() {
         Log.d("mapactivity","destroy");
@@ -184,7 +220,7 @@ public class MapActivity extends AppCompatActivity
             }).start();
         }
         userLocating.interrupt();
-
+        unbindService(conn);
         super.onDestroy();
     }
 

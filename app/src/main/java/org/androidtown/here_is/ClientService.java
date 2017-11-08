@@ -1,11 +1,9 @@
 package org.androidtown.here_is;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -13,7 +11,8 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.LocalBroadcastManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -41,6 +40,7 @@ public class ClientService extends Service implements Runnable {
     private List<Message> message_List;
     private List<Message> location_List;
     private String chat_text="채팅방 비어있음.";
+    private String current_chat_text;
 
     private final IBinder mBinder = new Mybinder();
     private LocationManager locationManager;
@@ -58,6 +58,8 @@ public class ClientService extends Service implements Runnable {
     private boolean key_chat_ok =false;
     private int chat_room=-1;
 
+    private static final String EXTRA_GET_MESSAGE ="current_chat_message";
+    private static final String EXTRA_ALL_MESSAGE ="all_chat_message";
 
     class Mybinder extends Binder {
         ClientService getService() {
@@ -87,16 +89,17 @@ public class ClientService extends Service implements Runnable {
 
 
         Log.d("chat","onStartCommand");
+        SendBroadcast_chat(chat_text,EXTRA_ALL_MESSAGE);
         return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
+
         Log.d("chat","onBind");
         return mBinder;
     }
-
 
 
     @Override
@@ -224,11 +227,15 @@ public class ClientService extends Service implements Runnable {
             else if(message_List.get(0).getChat_type().equals("chat")&&chat_room==message_List.get(0).getChat_room())
             {
                 chat_text += message_List.get(0).getId()+(": ")+ message_List.get(0).getChat_text()+("\n");
-
+                current_chat_text = "메시지 도착함, " + message_List.get(0).getId()+(": ")+ message_List.get(0).getChat_text()+("\n");
+                SendBroadcast_map(current_chat_text,EXTRA_GET_MESSAGE);
+                SendBroadcast_chat(chat_text,EXTRA_ALL_MESSAGE);
             }
             else if(message_List.get(0).getChat_type().equals("logout")&&chat_room==message_List.get(0).getChat_room())
             {
                 chat_text+="상대방이 채팅방을 떠났습니다.\n";
+                SendBroadcast_map("상대방이 채팅방을 떠났습니다.\n",EXTRA_GET_MESSAGE);
+                SendBroadcast_chat(chat_text,EXTRA_ALL_MESSAGE);
                 chat_room =-1;
             }
             key_getMessage_ok=true;
@@ -241,6 +248,25 @@ public class ClientService extends Service implements Runnable {
 
 
         // return inmsg;
+    }// messageController
+
+    private void SendBroadcast_chat(String message,String key) {
+        Intent it = new Intent("EVENT_CHAT");
+
+
+        if (!TextUtils.isEmpty(message))
+            it.putExtra(key,message);
+
+        LocalBroadcastManager.getInstance(this).sendBroadcast(it);
+    }
+    private void SendBroadcast_map(String message,String key) {
+        Intent it = new Intent("EVENT_SNACKBAR");
+
+
+        if (!TextUtils.isEmpty(message))
+            it.putExtra(key,message);
+
+        LocalBroadcastManager.getInstance(this).sendBroadcast(it);
     }
 
 
@@ -262,6 +288,9 @@ public class ClientService extends Service implements Runnable {
     {
         return key_gps_ok;
     }
+    public boolean get_key_chat_ok() { return key_chat_ok;}
+    public void set_ket_chat_ok(boolean ket_chat_ok){this.key_chat_ok=key_chat_ok;}
+    public String get_current_chat_text(){return current_chat_text;}
     public Socket getSocket(){return s;}
     public Location getMyLocation(){return lastKnownLocation;}
     public int getChat_room(){return chat_room;}
