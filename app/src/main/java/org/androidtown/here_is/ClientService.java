@@ -1,6 +1,7 @@
 package org.androidtown.here_is;
 
 import android.annotation.SuppressLint;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -73,11 +74,11 @@ public class ClientService extends Service implements Runnable {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d("chat","onCreate");
+        Log.d("CSV","Service onCreate");
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         listener = new MyLocationListener();
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 4000, 0, listener);
-        //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 4000, 0, listener);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 4000, 0, listener);
         location_List = new ArrayList<>();
         message_List = new ArrayList<>();
         myThread= new Thread(this);
@@ -89,7 +90,7 @@ public class ClientService extends Service implements Runnable {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
 
-        Log.d("chat","onStartCommand");
+        Log.d("CSV","onStartCommand");
         SendBroadcast_chat(chat_text,EXTRA_ALL_MESSAGE);
         return super.onStartCommand(intent, flags, startId);
     }
@@ -98,7 +99,7 @@ public class ClientService extends Service implements Runnable {
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
 
-        Log.d("chat","onBind");
+        Log.d("CSV","Service onBind");
         return mBinder;
     }
 
@@ -108,11 +109,17 @@ public class ClientService extends Service implements Runnable {
 
         Log.d("SCV","destroy");
         try {
-            if(s!=null)
+            if(!s.isClosed()) {
+                inMsg.close();
+                outMsg.close();
                 s.close();
+            }
             locationManager.removeUpdates(listener);
+            locationManager.removeUpdates(listener);
+            //myThread.interrupt();
+            //myThread.interrupt();
             myThread.interrupt();
-            myThread.interrupt();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -142,7 +149,7 @@ public class ClientService extends Service implements Runnable {
 
         while ( !myThread.isInterrupted()) //
         {
-
+            //Log.d("CSV", "service ~~~~~~~~~");
             if(!locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER))
             {
                 Log.d("CSV", "no gps connect");
@@ -245,6 +252,7 @@ public class ClientService extends Service implements Runnable {
             Log.d("chat","now chatroom: " +chat_room);
 
         } catch (IOException e) {
+            Thread.currentThread().interrupt();
             e.printStackTrace();
         }
 

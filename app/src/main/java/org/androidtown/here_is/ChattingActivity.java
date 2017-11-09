@@ -39,6 +39,7 @@ public class ChattingActivity extends AppCompatActivity  {
     private EditText sendEditText;
 
     //########service ########
+    private Intent svcIntent;
     private ServiceConnection conn = new ServiceConnection() {
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
@@ -71,6 +72,7 @@ public class ChattingActivity extends AppCompatActivity  {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("chat","oncreateCHAT");
         setContentView(R.layout.activity_chatting);
         profieImg = (ImageView)findViewById(R.id.profileImg);
         idTextView = (TextView)findViewById(R.id.idTextView);
@@ -89,7 +91,8 @@ public class ChattingActivity extends AppCompatActivity  {
             }
         });
 
-        startService(new Intent(this, ClientService.class));
+        svcIntent =new Intent(this, ClientService.class);
+        startService(svcIntent);
 //
 //        Intent getintent = getIntent();
 //       // targetID = getintent.getExtras().getString("targetID");
@@ -204,8 +207,10 @@ public class ChattingActivity extends AppCompatActivity  {
 //        }
 
        // my_thread.interrupt();
-        unbindService(conn);
-
+        if(isService) {
+            stopService(svcIntent);
+            unbindService(conn);
+        }
         super.onDestroy();
     }
 

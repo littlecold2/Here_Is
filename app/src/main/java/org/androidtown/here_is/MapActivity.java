@@ -127,13 +127,7 @@ public class MapActivity extends AppCompatActivity
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver_loc, new IntentFilter("EVENT_LOC"));
     }
     // 브로드 캐스트
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Intent intent = new Intent(MapActivity.this, ClientService.class);
-        bindService(intent, conn, Context.BIND_AUTO_CREATE);
-        Toast.makeText(getApplicationContext(), "Service 시작 ", Toast.LENGTH_SHORT).show();
-    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,7 +139,9 @@ public class MapActivity extends AppCompatActivity
         mapFragment.getMapAsync(this);  // 구글맵 프레그먼트 적용
  //########service ########
      //   CS = new ClientService();
-
+        Intent intent = new Intent(getApplicationContext(), ClientService.class);
+        bindService(intent, conn, Context.BIND_AUTO_CREATE);
+        Toast.makeText(getApplicationContext(), "Service 시작 ", Toast.LENGTH_SHORT).show();
 //########service ########
         tv = (TextView) findViewById(R.id.DDtext);
         gson = new Gson();
@@ -241,6 +237,7 @@ public class MapActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+
         fab.setVisibility(View.INVISIBLE);
     }
     @Override
@@ -258,7 +255,8 @@ public class MapActivity extends AppCompatActivity
             }).start();
         }
         //userLocating.interrupt();
-        unbindService(conn);
+        if(isService)
+            unbindService(conn);
         super.onDestroy();
     }
 
