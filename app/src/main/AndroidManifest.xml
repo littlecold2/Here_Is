@@ -45,8 +45,11 @@
 
         <activity android:name=".LoginActivity" />
         <activity android:name=".SignupActivity" />
+        <activity android:name=".EditProfileActivity"></activity>
+
         <activity android:name=".StartActivity" />
         <activity android:name=".ChattingActivity"></activity>
+
     </application>
 
 </manifest>

@@ -47,6 +47,7 @@ public class LoginActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "로그인 성공", Toast.LENGTH_LONG).show();
                 Intent intent = new Intent(getApplicationContext(), MapActivity.class);
                 startActivity(intent);
+                finish();
             }
             else if(result.equals("login_fail")) {
                 Toast.makeText(getApplicationContext(), "로그인에 실패했습니다. ID, PW를 확인해주세요.", Toast.LENGTH_LONG).show();
