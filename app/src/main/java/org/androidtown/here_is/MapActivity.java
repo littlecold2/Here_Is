@@ -26,6 +26,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -51,7 +52,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.io.LineNumberReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,6 +73,7 @@ public class MapActivity extends AppCompatActivity
     private ArrayList<MarkerOptions> L_Marker_userlist;
     private FloatingActionButton fab;
     private UserLocating userLocating;
+    Gson gson;
 
     //################ Profile View ################
     private LayoutInflater inflater;
@@ -100,30 +104,29 @@ public class MapActivity extends AppCompatActivity
     };
 //########service ########
 
+//######### 주변 정보 ##########
 
+    private LatLng lastknownlocation;
 
+//######### 주변 정보 ##########
 
-//    @Override
-//    protected void onPause() {
-//        unbindService(conn);
-//
-//        super.onPause();
-//
-//    }
-//
+    private List<Message> User_loc_List;
+
 
 
 //브로드 캐스트
     private BroadcastReceiver mMessageReceiver = null;
+    private BroadcastReceiver mMessageReceiver_loc = null;
     private static final String EXTRA_GET_MESSAGE ="current_chat_message";
     private static final String EXTRA_ALL_MESSAGE ="all_chat_message";
+    private static final String EXTRA_LOC_MESSAGE ="all_loc_message";
     @Override
     protected void onPostResume() {
         super.onPostResume();
-        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("EVENT_SNACKBAR"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("EVENT_STRING_TO_MAP"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver_loc, new IntentFilter("EVENT_LOC"));
     }
-// 브로드 캐스트
-
+    // 브로드 캐스트
     @Override
     protected void onStart() {
         super.onStart();
@@ -145,10 +148,13 @@ public class MapActivity extends AppCompatActivity
 
 //########service ########
         tv = (TextView) findViewById(R.id.DDtext);
+        gson = new Gson();
         L_Marker_userlist =new ArrayList<>();
 
-        userLocating = new UserLocating();
-        userLocating.start();
+        User_loc_List = new ArrayList<>();
+
+        //userLocating = new UserLocating();
+       // userLocating.start();
 
 
 
@@ -171,10 +177,42 @@ public class MapActivity extends AppCompatActivity
             @Override
             public void onReceive(Context context, Intent intent) {
                 String message = intent.getExtras().getString(EXTRA_GET_MESSAGE);
-                Log.d("chat","msg: "+message);
-                Snackbar.make(getWindow().getDecorView().getRootView(), message, Snackbar.LENGTH_SHORT)
-                        .setAction("Action", null).show();
+                String j_loc_msg = intent.getExtras().getString(EXTRA_LOC_MESSAGE);
+                if(!TextUtils.isEmpty(message)) {
+                    Log.d("chat", "msg: " + message);
+                    Snackbar.make(getWindow().getDecorView().getRootView(), message, Snackbar.LENGTH_SHORT)
+                            .setAction("Action", null).show();
                     fab.setVisibility(View.VISIBLE); // 메시지 오면 편지아이콘 나오게
+                }
+                else if(!TextUtils.isEmpty(j_loc_msg)) {
+
+                    User_loc_List = gson.fromJson(j_loc_msg, new TypeToken<ArrayList<Message>>() {
+                    }.getType());
+                    if (isService && CS.get_key_getMessage_ok()) {
+                        L_Marker_userlist.clear();
+                        map.clear();
+                        tv.setText("");
+                        for (Message mg : User_loc_List) {
+                            if (mg.getChat_room() == -1) {
+                                pickMark(new LatLng(mg.getLat(), mg.getLng()), mg.getName(), "인삿말", mg);
+                                tv.append("name: " + mg.getName() + "위치: " + mg.getLat() + ", " + mg.getLng());
+                            }
+
+                        }
+
+                    }
+                }
+
+            }
+        };
+        mMessageReceiver_loc = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Double Lat = intent.getExtras().getDouble("Lat");
+                Double Lng = intent.getExtras().getDouble("Lng");
+
+                lastknownlocation = new LatLng(Lat,Lng);
+
             }
         };
 // 브로드캐스트
@@ -219,7 +257,7 @@ public class MapActivity extends AppCompatActivity
                 }
             }).start();
         }
-        userLocating.interrupt();
+        //userLocating.interrupt();
         unbindService(conn);
         super.onDestroy();
     }

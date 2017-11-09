@@ -60,6 +60,7 @@ public class ClientService extends Service implements Runnable {
 
     private static final String EXTRA_GET_MESSAGE ="current_chat_message";
     private static final String EXTRA_ALL_MESSAGE ="all_chat_message";
+    private static final String EXTRA_LOC_MESSAGE ="all_loc_message";
 
     class Mybinder extends Binder {
         ClientService getService() {
@@ -212,6 +213,7 @@ public class ClientService extends Service implements Runnable {
             if(message_List.get(0).getChat_type().equals("location"))
             {
                 outMsg.println(j_outmsg);
+                SendBroadcast_map(j_inmsg,EXTRA_LOC_MESSAGE);
                 location_List=message_List;
             }
             else if(message_List.get(0).getChat_type().equals("room_set")&& chat_room==-1
@@ -260,12 +262,22 @@ public class ClientService extends Service implements Runnable {
         LocalBroadcastManager.getInstance(this).sendBroadcast(it);
     }
     private void SendBroadcast_map(String message,String key) {
-        Intent it = new Intent("EVENT_SNACKBAR");
+        Intent it = new Intent("EVENT_STRING_TO_MAP");
 
 
         if (!TextUtils.isEmpty(message))
             it.putExtra(key,message);
 
+        LocalBroadcastManager.getInstance(this).sendBroadcast(it);
+    }
+    private void SendBroadcast_loc(Double Lat,Double Lng) {
+        Intent it = new Intent("EVENT_LOC");
+
+
+        if (Lat!=null) {
+            it.putExtra("Lat", Lat);
+            it.putExtra("Lng", Lng);
+        }
         LocalBroadcastManager.getInstance(this).sendBroadcast(it);
     }
 
@@ -343,11 +355,14 @@ public class ClientService extends Service implements Runnable {
 //                }
             }
             if( lastKnownLocation.hasAltitude()) { // lastKnownLocation이 위치를
+                SendBroadcast_loc(lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude());
                 j_outmsg = Jsonize(Build.ID, Build.USER,lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude(),"location");
                 key_location_ok=true;
 
             }
+
         }
+
 
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
