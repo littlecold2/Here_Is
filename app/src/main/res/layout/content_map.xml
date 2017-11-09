@@ -13,6 +13,7 @@
 
 
 
+
     <fragment
         android:id="@+id/map"
         android:layout_width="match_parent"
@@ -45,28 +46,38 @@
                 android:text="서비스 종료"
                 android:layout_weight="0.3"/>
             <Button
-                android:id="@+id/Clear"
+                android:id="@+id/MyLocationBtn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Clear"
+                android:text="내 위치로 가기"
                 android:layout_weight="0.3"/>
 
         </LinearLayout>
-        <ScrollView
-            android:id="@+id/scollview"
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <TextView
-                android:id="@+id/DDtext"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:weightSum="2">
+            <ScrollView
+                android:id="@+id/scollview"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:hint=" information View"
-                android:textSize="12dp" />
-        </ScrollView>
+                android:layout_weight="1.8">
+                <TextView
+                    android:id="@+id/DDtext"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint=" information View"
+                    android:textSize="12dp" />
+
+            </ScrollView>
+
+
+        </LinearLayout>
 
 
     </LinearLayout>
-
 
 
 
