@@ -93,6 +93,7 @@ public class SignupActivity extends AppCompatActivity {
 
             else if(result.equals("signup_ok")) {
                 Toast.makeText(getApplicationContext(), "회원가입 완료.", Toast.LENGTH_LONG).show();
+                finish();
             }
 
             else if(result.equals("signup_fail")) {

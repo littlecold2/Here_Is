@@ -43,7 +43,8 @@
 
         <activity android:name=".LoginActivity" />
         <activity android:name=".SignupActivity" />
-        <activity android:name=".MapActivity"></activity>
+        <activity android:name=".MapActivity" />
+        <activity android:name=".EditProfileActivity"></activity>
     </application>
 
 </manifest>
