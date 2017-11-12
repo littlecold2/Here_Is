@@ -1,20 +1,21 @@
 package org.androidtown.here_is;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.Toast;
 
 import java.util.concurrent.ExecutionException;
 
 public class SignupActivity extends AppCompatActivity {
-    EditText ID, PW, NAME, INFO;
-    Button btn_signup_check;
-    ImageButton imgButton1,imgButton2, imgButton3,imgButton4;
-    String imageButton_index = "0";
+    public static final String KEY_USER_DATA = "userdata";
+    public static final int REQUEST_CODE_PROFILE = 101;
+
+    EditText ID, PW, NAME, INFO, URL;
+    Button btn_profile_select;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,33 +26,12 @@ public class SignupActivity extends AppCompatActivity {
         PW = (EditText) findViewById(R.id.editText_signup_pw);
         NAME = (EditText) findViewById(R.id.editText_signup_name);
         INFO = (EditText) findViewById(R.id.editText_signup_info);
+        URL = (EditText) findViewById(R.id.editText_youtube_url);
 
-        imgButton1 = (ImageButton) findViewById(R.id.imageButton1);
-        imgButton2 = (ImageButton) findViewById(R.id.imageButton2);
-        imgButton3 = (ImageButton) findViewById(R.id.imageButton3);
-        imgButton4 = (ImageButton) findViewById(R.id.imageButton4);
-
-        btn_signup_check = (Button) findViewById(R.id.btn_signup_check);
-
+        btn_profile_select = (Button) findViewById(R.id.btn_profile_select);
     }
 
-    public void imageButton1_Clicked(View v) {
-        imageButton_index = "1";
-    }
-
-    public void imageButton2_Clicked(View v) {
-        imageButton_index = "2";
-    }
-
-    public void imageButton3_Clicked(View v) {
-        imageButton_index = "3";
-    }
-
-    public void imageButton4_Clicked(View v) {
-        imageButton_index = "4";
-    }
-
-    public void btn_signup_check_Clicked(View v) throws ExecutionException, InterruptedException {
+    public void btn_profile_select_Clicked(View v) throws ExecutionException, InterruptedException {
         String check = "";
         int count = 0;
 
@@ -99,15 +79,24 @@ public class SignupActivity extends AppCompatActivity {
 
 
         else {
-            if(imageButton_index == "0") {
-                Toast.makeText(getApplicationContext(), "프로필 이미지를 선택해주세요.", Toast.LENGTH_LONG).show();
-            }
-            else {
                 String id = ID.getText().toString();
                 String pw = PW.getText().toString();
                 String name = NAME.getText().toString();
                 String info = INFO.getText().toString();
-                String index = imageButton_index;
+                String url = "";
+                if(URL.getText().equals("")) {
+                    url = "NO URL";
+                }
+                else {
+                    url = URL.getText().toString();
+                }
+
+                Intent intent = new Intent(getApplicationContext(), SignupProfileActivity.class);
+                UserData data = new UserData(id, pw, name, info, url);
+                intent.putExtra(KEY_USER_DATA, data);
+                startActivityForResult(intent, REQUEST_CODE_PROFILE);
+
+                /*
                 String type = "signup";
 
                 String result = "";
@@ -116,6 +105,28 @@ public class SignupActivity extends AppCompatActivity {
                 result = new ServerConn(this).execute(type, id, pw, name, info, index).get();
                 //Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
 
+                if (result.equals("diff_id")) {
+                    Toast.makeText(getApplicationContext(), "이미 존재하는 아이디 입니다.", Toast.LENGTH_LONG).show();
+                } else if (result.equals("signup_ok")) {
+                    Toast.makeText(getApplicationContext(), "회원가입 완료.", Toast.LENGTH_LONG).show();
+                    finish();
+                } else if (result.equals("signup_fail")) {
+                    Toast.makeText(getApplicationContext(), "회원가입 실패.", Toast.LENGTH_LONG).show();
+                }
+                */
+
+
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode== REQUEST_CODE_PROFILE) {
+            //Toast.makeText(getApplicationContext(), "onActivityResult 메소드호출됨. 요청코드: " + requestCode+ ", 결과코드: " + resultCode, Toast.LENGTH_LONG).show();
+            if (resultCode== RESULT_OK) {
+                String result = data.getExtras().getString("result");
+                //Toast.makeText(getApplicationContext(), "응답으로전달된 result : " + result, Toast.LENGTH_LONG).show();
                 if (result.equals("diff_id")) {
                     Toast.makeText(getApplicationContext(), "이미 존재하는 아이디 입니다.", Toast.LENGTH_LONG).show();
                 } else if (result.equals("signup_ok")) {

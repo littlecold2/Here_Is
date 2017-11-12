@@ -2,6 +2,7 @@ package org.androidtown.here_is;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -72,7 +73,8 @@ protected String doInBackground(String... params) {
         String pw = params[2];
         String name = params[3];
         String info = params[4];
-        String index = params[5];
+        String youtube = params[5];
+        String index = params[6];
         URL url = new URL(signup_url);
         HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
         httpURLConnection.setRequestMethod("POST");
@@ -80,7 +82,15 @@ protected String doInBackground(String... params) {
         httpURLConnection.setDoInput(true);
         OutputStream outputStream = httpURLConnection.getOutputStream();
         BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-        String post_data = URLEncoder.encode("id", "UTF-8") + "=" + URLEncoder.encode(id, "UTF-8") + "&" + URLEncoder.encode("pw", "UTF-8") + "=" + URLEncoder.encode(pw, "UTF-8") + "&" + URLEncoder.encode("name", "UTF-8") + "=" + URLEncoder.encode(name, "UTF-8") + "&" + URLEncoder.encode("info", "UTF-8") + "=" + URLEncoder.encode(info, "UTF-8") + "&" + URLEncoder.encode("index", "UTF-8") + "=" + URLEncoder.encode(index, "UTF-8");
+
+        Log.d("태그", id  + " & " + pw + " & " + name + " & " + info + " & " + youtube + " & " + index);
+
+        String post_data = URLEncoder.encode("id", "UTF-8") + "=" + URLEncoder.encode(id, "UTF-8") + "&"
+                + URLEncoder.encode("pw", "UTF-8") + "=" + URLEncoder.encode(pw, "UTF-8") + "&"
+                + URLEncoder.encode("name", "UTF-8") + "=" + URLEncoder.encode(name, "UTF-8") + "&"
+                + URLEncoder.encode("info", "UTF-8") + "=" + URLEncoder.encode(info, "UTF-8") + "&"
+                + URLEncoder.encode("youtube", "UTF-8") + "=" + URLEncoder.encode(youtube, "UTF-8") + "&"
+                + URLEncoder.encode("index", "UTF-8") + "=" + URLEncoder.encode(index, "UTF-8");
         bufferedWriter.write(post_data);
         bufferedWriter.flush();
         bufferedWriter.close();
