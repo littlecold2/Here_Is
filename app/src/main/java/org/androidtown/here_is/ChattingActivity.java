@@ -78,6 +78,7 @@ public class ChattingActivity extends AppCompatActivity  {
         idTextView = (TextView)findViewById(R.id.idTextView);
         messageView = (TextView)findViewById(R.id.messageView);
         sendEditText = (EditText)findViewById(R.id.sendEditText);
+       // CS = new ClientService();
 
         sendEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override public boolean onEditorAction(TextView v, int actionId, KeyEvent event)
@@ -133,7 +134,7 @@ public class ChattingActivity extends AppCompatActivity  {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        if(isService &&CS.get_key_getMessage_ok()&&CS.getChat_room()!=-1) {
+                        if(isService &&CS.get_key_server_ok()&&CS.getChat_room()!=-1) {
                             CS.sendMessage(Jsonize(Build.ID, CS.getChat_room(), "chat", sendEditText.getText().toString()));
                             runOnUiThread(new Runnable() {
                                 public void run() {
@@ -162,11 +163,11 @@ public class ChattingActivity extends AppCompatActivity  {
         OUTBtn.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(isService &&CS.get_key_getMessage_ok()) {
+                if(isService &&CS.get_key_server_ok()) {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            CS.sendMessage(Jsonize(CS.getChat_room(), "logout"));
+                            CS.sendMessage(Jsonize(CS.getChat_room(), "chat_logout"));
 //                            my_thread.interrupt();
 //                            unbindService(conn);
                             //CS.setChat_text_clear();
@@ -259,7 +260,7 @@ public class ChattingActivity extends AppCompatActivity  {
         return json;
 
     }
-    // logout
+    // chat_logout
     public String Jsonize(int chat_room ,String chat_type ) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
     {
 

@@ -48,6 +48,10 @@ public class Message {
         this.chat_room = chat_room;
         this.chat_type =chat_type;
     }
+    Message(String chat_type)
+    {
+        this.chat_type =chat_type;
+    }
 
 
     //location info

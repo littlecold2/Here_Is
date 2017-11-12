@@ -48,6 +48,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -72,7 +73,6 @@ public class MapActivity extends AppCompatActivity
     private TextView tv; // 아래 텍스트 출력 부분 컨트롤
     private ArrayList<MarkerOptions> L_Marker_userlist;
     private FloatingActionButton fab;
-    private UserLocating userLocating;
     Gson gson;
 
     //################ Profile View ################
@@ -138,7 +138,7 @@ public class MapActivity extends AppCompatActivity
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);  // 구글맵 프레그먼트 적용
  //########service ########
-     //   CS = new ClientService();
+       CS = new ClientService();
         Intent intent = new Intent(getApplicationContext(), ClientService.class);
         bindService(intent, conn, Context.BIND_AUTO_CREATE);
         Toast.makeText(getApplicationContext(), "Service 시작 ", Toast.LENGTH_SHORT).show();
@@ -167,24 +167,31 @@ public class MapActivity extends AppCompatActivity
 
             }
         });
-         // 메시지 오면 비지블되게 하는거지?
-//브로드캐스트
+
+//#############브로드캐스트############
         mMessageReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String message = intent.getExtras().getString(EXTRA_GET_MESSAGE);
                 String j_loc_msg = intent.getExtras().getString(EXTRA_LOC_MESSAGE);
+
+  //              Log.d("???", "key: " +String.valueOf(CS.get_key_server_ok()));
+//                if(!TextUtils.isEmpty(message)&&!CS.get_key_server_ok())
+//                {
+//                    Toast.makeText(getApplicationContext(),message,Toast.LENGTH_SHORT).show();
+//                }
+
                 if(!TextUtils.isEmpty(message)) {
                     Log.d("chat", "msg: " + message);
                     Snackbar.make(getWindow().getDecorView().getRootView(), message, Snackbar.LENGTH_SHORT)
                             .setAction("Action", null).show();
                     fab.setVisibility(View.VISIBLE); // 메시지 오면 편지아이콘 나오게
                 }
+
                 else if(!TextUtils.isEmpty(j_loc_msg)) {
 
                     User_loc_List = gson.fromJson(j_loc_msg, new TypeToken<ArrayList<Message>>() {
                     }.getType());
-                    if (isService && CS.get_key_getMessage_ok()) {
                         L_Marker_userlist.clear();
                         map.clear();
                         tv.setText("");
@@ -193,8 +200,6 @@ public class MapActivity extends AppCompatActivity
                                 pickMark(new LatLng(mg.getLat(), mg.getLng()), mg.getName(), "인삿말", mg);
                                 tv.append("name: " + mg.getName() + "위치: " + mg.getLat() + ", " + mg.getLng());
                             }
-
-                        }
 
                     }
                 }
@@ -208,10 +213,17 @@ public class MapActivity extends AppCompatActivity
                 Double Lng = intent.getExtras().getDouble("Lng");
 
                 lastknownlocation = new LatLng(Lat,Lng);
+                if(!CS.get_key_server_ok())
+                {
+                    L_Marker_userlist.clear();
+                    map.clear();
+                    pickMark(lastknownlocation,"나","서버 연결 안됨");
+                }
 
             }
         };
-// 브로드캐스트
+//############### 브로드캐스트 ####################
+
 
 
 
@@ -227,10 +239,6 @@ public class MapActivity extends AppCompatActivity
 
 
 
-//        Intent sintent = new Intent(getApplicationContext(), ChattingActivity.class);
-//           sintent.putExtra("targetID",Build.ID);
-//           startActivity(sintent);
-
     }
 
 
@@ -243,11 +251,11 @@ public class MapActivity extends AppCompatActivity
     @Override
     protected void onDestroy() {
         Log.d("mapactivity","destroy");
-        if(isService &&CS.get_key_getMessage_ok()) {
+        if(isService &&CS.get_key_server_ok()) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    CS.sendMessage(Jsonize(CS.getChat_room(), "logout"));
+                    CS.sendMessage(Jsonize(CS.getChat_room(), "chat_logout"));
 //                            my_thread.interrupt();
 //                            unbindService(conn);
                     //CS.setChat_text_clear();
@@ -265,7 +273,8 @@ public class MapActivity extends AppCompatActivity
         map = gMap;
         enableMyLocation(); // 내 위치 활성화
 
-       // pickMark( new LatLng( 37.628, 126.825),"min","address");
+        pickMark( new LatLng( 37.628, 126.825),"ㅎㅇ","켜졌다");
+        map.animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng( 37.628, 126.825)).zoom(20).tilt(30).build()));
         map.moveCamera(CameraUpdateFactory.newLatLng( new LatLng( 37.628, 126.825)));
         map.animateCamera(CameraUpdateFactory.zoomTo(20));
 
@@ -277,7 +286,9 @@ public class MapActivity extends AppCompatActivity
             @Override //마커 클릭시
             public boolean onMarkerClick(Marker marker) {
                 //################ Profile View ################
-                if(((Message)marker.getTag()).getId().equals(Build.ID))
+                if(((Message)marker.getTag())==null)
+                    Toast.makeText(getApplicationContext(), "자신의 마커 입니다.", Toast.LENGTH_SHORT).show();
+                else if(((Message)marker.getTag()).getId().equals(Build.ID))
                 {
                     Toast.makeText(getApplicationContext(), "자신의 마커 입니다.", Toast.LENGTH_SHORT).show();
                 }
@@ -381,7 +392,7 @@ public class MapActivity extends AppCompatActivity
 //            sintent.putExtra("targetID",Build.ID);
 //            startActivity(sintent);
 
-            if(CS.get_key_getlocation_ok())
+            if(CS.get_key_location_ok())
                 map.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(CS.getMyLocation().getLatitude(),CS.getMyLocation().getLongitude())));
             else
                 Toast.makeText(getApplicationContext(), "위치 확인중...", Toast.LENGTH_SHORT).show();
@@ -450,65 +461,6 @@ public class MapActivity extends AppCompatActivity
         L_Marker_userlist.add(markerOptions); // 위치정보 마커 리스트에 추가
     } // pickMark
 
-    public class UserLocating extends Thread
-    {
-        public void run() {
-            // 현재 UI 스레드가 아니기 때문에 메시지 큐에 Runnable을 등록 함
-            while (!userLocating.isInterrupted()) {
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    e.printStackTrace();
-                }
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        List<Message> message_List;
-//                        if(CS.get_key_pop_ok())
-//                        {
-//                            Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
-//                            startActivity(intent);
-//                            CS.set_key_pop(false);
-//                        }
-                        if(!CS.get_key_gps_ok())
-                        {
-                            Toast.makeText(getApplicationContext(),"GPS를 켜주세요.",Toast.LENGTH_SHORT).show();
-                            tv.setText("");
-                        }
-                        else if (!CS.get_key_getlocation_ok())
-                        {
-                            Toast.makeText(getApplicationContext(), "위치 확인중...", Toast.LENGTH_SHORT).show();
-                        }
-                        else if (isService&& CS.get_key_getMessage_ok()) {
-                            message_List = CS.getLocation_List();
-                            L_Marker_userlist.clear();
-                            map.clear();
-                            tv.setText("");
-                            for (Message mg : message_List) {
-                                if(mg.getChat_room() == -1)
-                                {
-                                    pickMark(new LatLng(mg.getLat(), mg.getLng()), mg.getName(), "인삿말", mg);
-                                    tv.append("name: "+mg.getName()+ "위치: "+mg.getLat()+", "+mg.getLng());
-                                }
-
-                            }
-
-                        }
-                        else if(isService && CS.get_key_getlocation_ok() && !CS.get_key_getMessage_ok())
-                        {
-                            Toast.makeText(getApplicationContext(),"서버에서 값 못받음",Toast.LENGTH_SHORT).show();
-                            tv.setText("");
-                         //   L_Marker_userlist.clear();
-                         //   map.clear();
-                           // pickMark(new LatLng(CS.getMyLocation().getLatitude(), CS.getMyLocation().getLongitude()), Build.USER, "인삿말");
-                            tv.append("서버에서 값 못받음\n name: " + "나" + " lat: " + CS.getMyLocation().getLatitude() + " lng: " + CS.getMyLocation().getLongitude() +"\n");
-                        }
-                    }
-
-                });
-            }///
-        }
-    }
 
 
 
@@ -522,7 +474,7 @@ public class MapActivity extends AppCompatActivity
 
     }
 
-    // logout
+    // chat_logout
     public String Jsonize(int chat_room ,String chat_type ) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
     {
 
@@ -656,5 +608,67 @@ public class MapActivity extends AppCompatActivity
         return true;
     }
 }
+
+
+//    public class UserLocating extends Thread
+//    {
+//        public void run() {
+//            // 현재 UI 스레드가 아니기 때문에 메시지 큐에 Runnable을 등록 함
+//            while (!userLocating.isInterrupted()) {
+//                try {
+//                    Thread.sleep(3000);
+//                } catch (InterruptedException e) {
+//                    Thread.currentThread().interrupt();
+//                    e.printStackTrace();
+//                }
+//                runOnUiThread(new Runnable() {
+//                    public void run() {
+//                        List<Message> message_List;
+////                        if(CS.get_key_pop_ok())
+////                        {
+////                            Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
+////                            startActivity(intent);
+////                            CS.set_key_pop(false);
+////                        }
+//                        if(!CS.get_key_gps_ok())
+//                        {
+//                            Toast.makeText(getApplicationContext(),"GPS를 켜주세요.",Toast.LENGTH_SHORT).show();
+//                            tv.setText("");
+//                        }
+//                        else if (!CS.get_key_getlocation_ok())
+//                        {
+//                            Toast.makeText(getApplicationContext(), "위치 확인중...", Toast.LENGTH_SHORT).show();
+//                        }
+//                        else if (isService&& CS.get_key_getMessage_ok()) {
+//                            message_List = CS.getLocation_List();
+//                            L_Marker_userlist.clear();
+//                            map.clear();
+//                            tv.setText("");
+//                            for (Message mg : message_List) {
+//                                if(mg.getChat_room() == -1)
+//                                {
+//                                    pickMark(new LatLng(mg.getLat(), mg.getLng()), mg.getName(), "인삿말", mg);
+//                                    tv.append("name: "+mg.getName()+ "위치: "+mg.getLat()+", "+mg.getLng());
+//                                }
+//
+//                            }
+//
+//                        }
+//                        else if(isService && CS.get_key_getlocation_ok() && !CS.get_key_getMessage_ok())
+//                        {
+//                            Toast.makeText(getApplicationContext(),"서버에서 값 못받음",Toast.LENGTH_SHORT).show();
+//                            tv.setText("");
+//                         //   L_Marker_userlist.clear();
+//                         //   map.clear();
+//                           // pickMark(new LatLng(CS.getMyLocation().getLatitude(), CS.getMyLocation().getLongitude()), Build.USER, "인삿말");
+//                            tv.append("서버에서 값 못받음\n name: " + "나" + " lat: " + CS.getMyLocation().getLatitude() + " lng: " + CS.getMyLocation().getLongitude() +"\n");
+//                        }
+//                    }
+//
+//                });
+//            }///
+//        }
+//    }
+
 
 
