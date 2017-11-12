@@ -1,6 +1,7 @@
 package org.androidtown.here_is;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -29,6 +30,11 @@ public class SignupActivity extends AppCompatActivity {
         URL = (EditText) findViewById(R.id.editText_youtube_url);
 
         btn_profile_select = (Button) findViewById(R.id.btn_profile_select);
+    }
+
+    public void btn_youtube_Clicked(View v) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/live_dashboard"));
+        startActivity(intent);
     }
 
     public void btn_profile_select_Clicked(View v) throws ExecutionException, InterruptedException {
@@ -119,6 +125,8 @@ public class SignupActivity extends AppCompatActivity {
         }
     }
 
+
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -133,7 +141,7 @@ public class SignupActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "회원가입 완료.", Toast.LENGTH_LONG).show();
                     finish();
                 } else if (result.equals("signup_fail")) {
-                    Toast.makeText(getApplicationContext(), "회원가입 실패.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "회원가입 실패. 다시한번 시도해주세요", Toast.LENGTH_LONG).show();
                 }
             }
         }

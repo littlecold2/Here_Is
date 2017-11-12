@@ -83,8 +83,6 @@ protected String doInBackground(String... params) {
         OutputStream outputStream = httpURLConnection.getOutputStream();
         BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
 
-        Log.d("태그", id  + " & " + pw + " & " + name + " & " + info + " & " + youtube + " & " + index);
-
         String post_data = URLEncoder.encode("id", "UTF-8") + "=" + URLEncoder.encode(id, "UTF-8") + "&"
                 + URLEncoder.encode("pw", "UTF-8") + "=" + URLEncoder.encode(pw, "UTF-8") + "&"
                 + URLEncoder.encode("name", "UTF-8") + "=" + URLEncoder.encode(name, "UTF-8") + "&"

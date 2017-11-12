@@ -112,7 +112,8 @@
             android:layout_weight="0.25"
             android:layout_marginRight="30dp"
             android:text="찾기"
-            android:textSize="20dp"/>
+            android:textSize="20dp"
+            android:onClick="btn_youtube_Clicked"/>
 
     </LinearLayout>
 
