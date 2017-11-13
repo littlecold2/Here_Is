@@ -112,11 +112,12 @@ public class MapActivity extends AppCompatActivity
 
     private List<Message> User_loc_List;
 
-
+int myimage =3;
 
 //브로드 캐스트
     private BroadcastReceiver mMessageReceiver = null;
     private BroadcastReceiver mMessageReceiver_loc = null;
+    private BroadcastReceiver mMessageReceiver_chat_req = null;
     private static final String EXTRA_GET_MESSAGE ="current_chat_message";
     private static final String EXTRA_ALL_MESSAGE ="all_chat_message";
     private static final String EXTRA_LOC_MESSAGE ="all_loc_message";
@@ -125,6 +126,7 @@ public class MapActivity extends AppCompatActivity
         super.onPostResume();
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("EVENT_STRING_TO_MAP"));
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver_loc, new IntentFilter("EVENT_LOC"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver_chat_req, new IntentFilter("EVENT_CHAT_REQ_MAP"));
     }
     // 브로드 캐스트
 
@@ -168,18 +170,23 @@ public class MapActivity extends AppCompatActivity
             }
         });
 
-//#############브로드캐스트############
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+//                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        //#############브로드캐스트############
+
         mMessageReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String message = intent.getExtras().getString(EXTRA_GET_MESSAGE);
                 String j_loc_msg = intent.getExtras().getString(EXTRA_LOC_MESSAGE);
-
-  //              Log.d("???", "key: " +String.valueOf(CS.get_key_server_ok()));
-//                if(!TextUtils.isEmpty(message)&&!CS.get_key_server_ok())
-//                {
-//                    Toast.makeText(getApplicationContext(),message,Toast.LENGTH_SHORT).show();
-//                }
 
                 if(!TextUtils.isEmpty(message)) {
                     Log.d("chat", "msg: " + message);
@@ -192,14 +199,14 @@ public class MapActivity extends AppCompatActivity
 
                     User_loc_List = gson.fromJson(j_loc_msg, new TypeToken<ArrayList<Message>>() {
                     }.getType());
-                        L_Marker_userlist.clear();
-                        map.clear();
-                        tv.setText("");
-                        for (Message mg : User_loc_List) {
-                            if (mg.getChat_room() == -1) {
-                                pickMark(new LatLng(mg.getLat(), mg.getLng()), mg.getName(), "인삿말", mg);
-                                tv.append("name: " + mg.getName() + "위치: " + mg.getLat() + ", " + mg.getLng());
-                            }
+                    L_Marker_userlist.clear();
+                    map.clear();
+                    tv.setText("");
+                    for (Message mg : User_loc_List) {
+                        if (mg.getChat_room() == -1) {
+                            pickMark(new LatLng(mg.getLat(), mg.getLng()), mg.getName(), "인삿말", mg);
+                            tv.append("name: " + mg.getName() + "위치: " + mg.getLat() + ", " + mg.getLng());
+                        }
 
                     }
                 }
@@ -222,25 +229,67 @@ public class MapActivity extends AppCompatActivity
 
             }
         };
+
+        mMessageReceiver_chat_req = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String  id = intent.getExtras().getString("ID");
+                String  name = intent.getExtras().getString("NAME");
+                int image = intent.getExtras().getInt("IMAGE");
+
+                showdialog(id,name,image);
+
+
+            }
+        };
 //############### 브로드캐스트 ####################
 
 
-
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-//                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-
-
     }
+    private void showdialog(final String id, String name, int image) {
+// 대화상자를만들기위한빌더객체생성
 
+        String resName = "@drawable/image" + image;
+        int resID = getResources().getIdentifier(resName, "drawable", this.getPackageName());
+
+        android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(this);
+        builder.setTitle("채팅 요청");
+        builder.setMessage(name + "님이 채팅을 요청 하셨습니다.\n 채팅을 수락 하시겠습니까?");
+
+
+
+        builder.setIcon(resID);
+        builder.setCancelable(false);
+        builder.setPositiveButton("네", new DialogInterface.OnClickListener() { // 예버튼
+            public void onClick(DialogInterface dialog, int whichButton) {
+
+                if(CS.getChat_room()==-1) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            CS.sendMessage(Jsonize(Build.ID, id, "room_set"));
+                        }
+                    }).start();
+                }
+                dialog.cancel();
+                dialog.dismiss();
+            }
+        });
+
+        builder.setNegativeButton("아니오", new DialogInterface.OnClickListener() { // 아니오버튼
+            public void onClick(DialogInterface dialog, int whichButton) {
+                Toast.makeText(getApplicationContext(), "채팅을 취소 하였습니다.", Toast.LENGTH_SHORT).show();
+                dialog.cancel();
+                dialog.dismiss();
+            }
+        });
+
+        android.support.v7.app.AlertDialog dialog = builder.create();// 대화상자객체생성후보여주기
+
+
+        if(!isFinishing())
+            dialog.show();
+    }
 
     @Override
     protected void onResume() {
@@ -273,7 +322,7 @@ public class MapActivity extends AppCompatActivity
         map = gMap;
         enableMyLocation(); // 내 위치 활성화
 
-        pickMark( new LatLng( 37.628, 126.825),"ㅎㅇ","켜졌다");
+        pickMark( new LatLng( 37.628, 126.825),"안녕하세요.","GPS를 켜주세요~");
         map.animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng( 37.628, 126.825)).zoom(20).tilt(30).build()));
         map.moveCamera(CameraUpdateFactory.newLatLng( new LatLng( 37.628, 126.825)));
         map.animateCamera(CameraUpdateFactory.zoomTo(20));
@@ -301,28 +350,7 @@ public class MapActivity extends AppCompatActivity
                     Btn_chatting = (Button) profileView.findViewById(R.id.chatBtn);
                     Btn_Streaming = (Button) profileView.findViewById(R.id.StreamingBtn);
                     // 채팅버튼 누를 때
-                    Btn_chatting.setOnClickListener(new Button.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-//                    Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
-//                    // +상대방 이미지 그런거?
-//                    startActivity(intent);
-                        if(CS.getChat_room()==-1) {
-                            new Thread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    CS.sendMessage(Jsonize(Build.ID, targetID, "room_set"));
-                                }
-                            }).start();
-                        }
-                        else
-                        {
-                            Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                            startActivity(intent);
-                        }
-                        }
-                    });
+
                     AlertDialog.Builder buider = new AlertDialog.Builder(MapActivity.this); //AlertDialog.Builder 객체 생성
 
                     buider.setTitle("Member Information"); //Dialog 제목
@@ -332,8 +360,32 @@ public class MapActivity extends AppCompatActivity
                     introView.setText(((Message) marker.getTag()).getName());
                     buider.setView(profileView);
 
-                    AlertDialog dialog = buider.create();
+                    final AlertDialog dialog = buider.create();
                     dialog.show();
+                    Btn_chatting.setOnClickListener(new Button.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+//                    Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
+//                    // +상대방 이미지 그런거?
+//                    startActivity(intent);
+                            if(CS.getChat_room()==-1) {
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        CS.sendMessage(Jsonize(Build.ID, targetID,Build.USER,myimage, "room_req"));
+                                    }
+                                }).start();
+                                Toast.makeText(getApplicationContext(), "채팅 요청을 보냈습니다.", Toast.LENGTH_LONG).show();
+                                dialog.cancel();
+                            }
+                            else
+                            {
+                                Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                                startActivity(intent);
+                            }
+                        }
+                    });
                     //################ Profile View ################
 
 //
@@ -371,15 +423,7 @@ public class MapActivity extends AppCompatActivity
         { @Override
         public void onClick(View view)
         {
-            if(isService) {
-                unbindService(conn);
-                Toast.makeText(getApplicationContext(), "위치 추적 끔 ,Service unBind", Toast.LENGTH_SHORT).show();
-                isService=false;
-            }
-            else
-            {
-                Toast.makeText(getApplicationContext(), "위치 추적 켜 있지 않음", Toast.LENGTH_SHORT).show();
-            }
+           showdialog(Build.ID,"min",0);
         }
         });
         Btn_MyLoction.setOnClickListener(new Button.OnClickListener()
@@ -470,6 +514,13 @@ public class MapActivity extends AppCompatActivity
     {
 
         String json = new Gson().toJson(new Message(chat_id1,chat_id2,chat_type)); //Data -> Gson -> json
+        return json;
+
+    }
+    public String Jsonize(String chat_id1, String chat_id2,String name,int image,String chat_type ) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
+    {
+
+        String json = new Gson().toJson(new Message(chat_id1,chat_id2,name,image,chat_type)); //Data -> Gson -> json
         return json;
 
     }

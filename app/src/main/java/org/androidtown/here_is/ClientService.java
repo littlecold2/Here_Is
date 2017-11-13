@@ -228,6 +228,13 @@ public class ClientService extends Service implements Runnable {
                 SendBroadcast_map(j_inmsg,EXTRA_LOC_MESSAGE);
                 location_List=message_List;
             }
+            else if(message_List.get(0).getChat_type().equals("room_req")&& chat_room==-1
+                    &&message_List.get(0).getChat_id()[1].equals(Build.ID))
+            {
+                SendBroadcast_chat_req(message_List.get(0).getChat_id()[0],message_List.get(0).getName(),message_List.get(0).getImage());
+                Log.d("req",message_List.get(0).getChat_id()[0]);
+            }
+
             else if(message_List.get(0).getChat_type().equals("room_set")&& chat_room==-1
                     &&(message_List.get(0).getChat_id()[0].equals(Build.ID)||message_List.get(0).getChat_id()[1].equals(Build.ID)))
             {
@@ -293,6 +300,16 @@ public class ClientService extends Service implements Runnable {
 
         LocalBroadcastManager.getInstance(this).sendBroadcast(it);
     }
+    private void SendBroadcast_chat_req(String id,String name,int image) {
+        Intent it = new Intent("EVENT_CHAT_REQ_MAP");
+
+        if (!TextUtils.isEmpty(name)&&!TextUtils.isEmpty(id)) {
+            it.putExtra("ID", id);
+            it.putExtra("NAME", name);
+            it.putExtra("IMAGE", image);
+        }
+        LocalBroadcastManager.getInstance(this).sendBroadcast(it);
+    }
     private void SendBroadcast_loc(Double Lat,Double Lng) {
         Intent it = new Intent("EVENT_LOC");
 
@@ -330,14 +347,7 @@ public class ClientService extends Service implements Runnable {
         return json;
 
     }
-    //logout
-    public String Jsonize(String chat_type) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
-    {
 
-        String json = new Gson().toJson(new Message(chat_type)); //Data -> Gson -> json
-        return json;
-
-    }
 
 
     public class MyLocationListener implements LocationListener
