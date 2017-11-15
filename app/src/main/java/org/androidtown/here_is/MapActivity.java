@@ -57,22 +57,28 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.LineNumberReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.androidtown.here_is.ClientService.Mybinder;
+import noman.googleplaces.NRPlaces;
+import noman.googleplaces.PlaceType;
+import noman.googleplaces.PlacesException;
+import noman.googleplaces.PlacesListener;
 
 public class MapActivity extends AppCompatActivity
         implements
         NavigationView.OnNavigationItemSelectedListener,
         OnMapReadyCallback,
-        ActivityCompat.OnRequestPermissionsResultCallback{
-
+        ActivityCompat.OnRequestPermissionsResultCallback,
+        PlacesListener {
+    private List<Marker> previous_marker = null;
     private GoogleMap map; // 구글맵 사용 할 때 필요
     private boolean mPermissionDenied = false;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1; // 위치 권한 쓸때
     private TextView tv; // 아래 텍스트 출력 부분 컨트롤
-    private ArrayList<MarkerOptions> L_Marker_userlist;
-    private FloatingActionButton fab;
+    private ArrayList<Marker> L_Marker_userlist;
+    private FloatingActionButton fab,menu_fab;
     Gson gson;
 
     //################ Profile View ################
@@ -150,11 +156,21 @@ int myimage =3;
         L_Marker_userlist =new ArrayList<>();
 
         User_loc_List = new ArrayList<>();
-
+        previous_marker = new ArrayList<>();
         //userLocating = new UserLocating();
        // userLocating.start();
 
 
+
+        final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+//                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
 
         // 편지 아이콘
         fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -169,16 +185,16 @@ int myimage =3;
 
             }
         });
+        menu_fab = (FloatingActionButton) findViewById(R.id.menu_fab);
+        menu_fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                drawer.openDrawer(navigationView);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-//                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
+            }
+        });
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+
 
         //#############브로드캐스트############
 
@@ -199,9 +215,14 @@ int myimage =3;
 
                     User_loc_List = gson.fromJson(j_loc_msg, new TypeToken<ArrayList<Message>>() {
                     }.getType());
-                    L_Marker_userlist.clear();
-                    map.clear();
+
+                    //map.clear();
                     tv.setText("");
+                    for (Marker mk : L_Marker_userlist) {
+                        mk.remove();
+                    }
+                    L_Marker_userlist.clear();
+
                     for (Message mg : User_loc_List) {
                         if (mg.getChat_room() == -1) {
                             pickMark(new LatLng(mg.getLat(), mg.getLng()), mg.getName(), "인삿말", mg);
@@ -220,12 +241,16 @@ int myimage =3;
                 Double Lng = intent.getExtras().getDouble("Lng");
 
                 lastknownlocation = new LatLng(Lat,Lng);
+
                 if(!CS.get_key_server_ok())
                 {
                     L_Marker_userlist.clear();
                     map.clear();
+                   // showPlaceInformation(lastknownlocation);
                     pickMark(lastknownlocation,"나","서버 연결 안됨");
                 }
+
+
 
             }
         };
@@ -320,7 +345,10 @@ int myimage =3;
     @Override
     public void onMapReady(GoogleMap gMap) {
         map = gMap;
+//        map.setOnMyLocationButtonClickListener(this);// gps 버튼 활성화
         enableMyLocation(); // 내 위치 활성화
+
+
 
         pickMark( new LatLng( 37.628, 126.825),"안녕하세요.","GPS를 켜주세요~");
         map.animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng( 37.628, 126.825)).zoom(20).tilt(30).build()));
@@ -436,8 +464,10 @@ int myimage =3;
 //            sintent.putExtra("targetID",Build.ID);
 //            startActivity(sintent);
 
-            if(CS.get_key_location_ok())
-                map.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(CS.getMyLocation().getLatitude(),CS.getMyLocation().getLongitude())));
+            if(CS.get_key_location_ok()) {
+                map.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(CS.getMyLocation().getLatitude(), CS.getMyLocation().getLongitude())));
+                showPlaceInformation(lastknownlocation);
+            }
             else
                 Toast.makeText(getApplicationContext(), "위치 확인중...", Toast.LENGTH_SHORT).show();
         }
@@ -478,7 +508,7 @@ int myimage =3;
         mk.setTag(data);
         mk.showInfoWindow();
 //        map.addMarker(markerOptions).showInfoWindow(); // 맵에 추가
-        L_Marker_userlist.add(markerOptions); // 위치정보 마커 리스트에 추가
+        L_Marker_userlist.add(mk); // 위치정보 마커 리스트에 추가
     } // pickMark
 
     private void pickMark(final LatLng LL,String name, String address) // 위도 경도, 이름 주소 받아서 마커 찍는 함수
@@ -486,7 +516,9 @@ int myimage =3;
         MarkerOptions markerOptions = new MarkerOptions(); // 옵션 설정 해놓을 변수
         markerOptions.position(LL); // 위치 적용
         markerOptions.title(name); // 이름
+//        markerOptions.snippet(address.substring(0,20)); // 주소 넣음
         markerOptions.snippet(address); // 주소 넣음
+
         markerOptions.draggable(true); // 드래그 가능하도록
         markerOptions.flat(true);
 
@@ -501,8 +533,14 @@ int myimage =3;
         {
             markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.image3));
         }
-        map.addMarker(markerOptions).showInfoWindow(); // 맵에 추가
-        L_Marker_userlist.add(markerOptions); // 위치정보 마커 리스트에 추가
+        // map.addMarker(markerOptions).setFlat(true);
+
+
+        Marker mk;
+        mk = map.addMarker(markerOptions);
+        mk.showInfoWindow();
+//        map.addMarker(markerOptions).showInfoWindow(); // 맵에 추가
+        L_Marker_userlist.add(mk); // 위치정보 마커 리스트에 추가
     } // pickMark
 
 
@@ -533,6 +571,7 @@ int myimage =3;
         return json;
 
     }
+
 
 
 
@@ -658,6 +697,66 @@ int myimage =3;
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
+    public void onPlacesFailure(PlacesException e) {
+
+    }
+
+
+    public void onPlacesStart() {
+
+    }
+
+
+    public void onPlacesSuccess(final List<noman.googleplaces.Place> places) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                for (noman.googleplaces.Place place : places) {
+
+                    LatLng latLng = new LatLng(place.getLatitude(), place.getLongitude());
+
+                    MarkerOptions markerOptions = new MarkerOptions();
+                    markerOptions.position(latLng);
+                    markerOptions.title(place.getName());
+                    markerOptions.snippet(place.getVicinity());
+                    Marker item = map.addMarker(markerOptions);
+                    previous_marker.add(item);
+
+                }
+
+                //중복 마커 제거
+                HashSet<Marker> hashSet = new HashSet<Marker>();
+                hashSet.addAll(previous_marker);
+                previous_marker.clear();
+                previous_marker.addAll(hashSet);
+            }
+        });
+    }
+
+
+    public void onPlacesFinished() {
+
+    }
+
+    public void showPlaceInformation(LatLng location)
+    {
+       // map.clear();//지도 지우기
+
+        if (previous_marker != null)
+            previous_marker.clear();//마커지우기
+
+        new NRPlaces.Builder()
+                .listener(MapActivity.this)
+                .key("AIzaSyDdwDyx5xMSgY_b7IPNnCrB9qWLMQ-EDgM")
+                .latlng(location.latitude, location.longitude)// location 파라미터의 위치로부터
+                .radius(500)  // 1000M 이내에 있는
+                .type(PlaceType.RESTAURANT)  // 음식점 추적
+                .build()
+                .execute();
+    }
+
+
 }
 
 
