@@ -277,7 +277,7 @@ int myimage =3;
         String resName = "@drawable/image" + image;
         int resID = getResources().getIdentifier(resName, "drawable", this.getPackageName());
 
-        android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(this);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("채팅 요청");
         builder.setMessage(name + "님이 채팅을 요청 하셨습니다.\n 채팅을 수락 하시겠습니까?");
 
@@ -285,6 +285,7 @@ int myimage =3;
 
         builder.setIcon(resID);
         builder.setCancelable(false);
+
         builder.setPositiveButton("네", new DialogInterface.OnClickListener() { // 예버튼
             public void onClick(DialogInterface dialog, int whichButton) {
 
@@ -296,7 +297,7 @@ int myimage =3;
                         }
                     }).start();
                 }
-                dialog.cancel();
+                //dialog.cancel();
                 dialog.dismiss();
             }
         });
@@ -304,12 +305,13 @@ int myimage =3;
         builder.setNegativeButton("아니오", new DialogInterface.OnClickListener() { // 아니오버튼
             public void onClick(DialogInterface dialog, int whichButton) {
                 Toast.makeText(getApplicationContext(), "채팅을 취소 하였습니다.", Toast.LENGTH_SHORT).show();
-                dialog.cancel();
+                //dialog.cancel();
                 dialog.dismiss();
             }
         });
 
-        android.support.v7.app.AlertDialog dialog = builder.create();// 대화상자객체생성후보여주기
+
+        AlertDialog dialog = builder.create();// 대화상자객체생성후보여주기
 
 
         if(!isFinishing())

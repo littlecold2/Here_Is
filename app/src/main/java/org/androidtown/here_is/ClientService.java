@@ -233,6 +233,7 @@ public class ClientService extends Service implements Runnable {
             {
                 SendBroadcast_chat_req(message_List.get(0).getChat_id()[0],message_List.get(0).getName(),message_List.get(0).getImage());
                 Log.d("req",message_List.get(0).getChat_id()[0]);
+                return;
             }
 
             else if(message_List.get(0).getChat_type().equals("room_set")&& chat_room==-1
