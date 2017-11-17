@@ -48,7 +48,9 @@
         <activity android:name=".EditProfileActivity" />
         <activity android:name=".MapActivity" />
         <activity android:name=".ChattingActivity" />
-        <activity android:name=".SignupProfileActivity"></activity>
+        <activity android:name=".SignupProfileActivity" />
+        <activity android:name=".EditIndexActivity" />
+        <activity android:name=".shared_test"></activity>
     </application>
 
 </manifest>

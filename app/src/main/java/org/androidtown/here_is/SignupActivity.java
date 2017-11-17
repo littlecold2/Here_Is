@@ -101,27 +101,6 @@ public class SignupActivity extends AppCompatActivity {
                 UserData data = new UserData(id, pw, name, info, url);
                 intent.putExtra(KEY_USER_DATA, data);
                 startActivityForResult(intent, REQUEST_CODE_PROFILE);
-
-                /*
-                String type = "signup";
-
-                String result = "";
-                //Toast.makeText(getApplicationContext(), "before", Toast.LENGTH_LONG).show();
-
-                result = new ServerConn(this).execute(type, id, pw, name, info, index).get();
-                //Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
-
-                if (result.equals("diff_id")) {
-                    Toast.makeText(getApplicationContext(), "이미 존재하는 아이디 입니다.", Toast.LENGTH_LONG).show();
-                } else if (result.equals("signup_ok")) {
-                    Toast.makeText(getApplicationContext(), "회원가입 완료.", Toast.LENGTH_LONG).show();
-                    finish();
-                } else if (result.equals("signup_fail")) {
-                    Toast.makeText(getApplicationContext(), "회원가입 실패.", Toast.LENGTH_LONG).show();
-                }
-                */
-
-
         }
     }
 

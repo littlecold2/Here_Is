@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="org.androidtown.here_is.EditIndexActivity"
+    android:orientation="vertical"
+    android:weightSum="1">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.15"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="프로필 이미지"
+            android:textSize="30dp"
+            android:gravity="center"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.22"
+        android:weightSum="0.9"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/img_1e"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.3"
+            android:padding="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="5dp"
+            android:src="@drawable/profile1"
+            android:scaleType="centerInside"
+            android:background="#FFFFFFFF"
+            android:onClick="img_1e_Clicked"/>
+
+        <ImageButton
+            android:id="@+id/img_2e"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.3"
+            android:padding="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="5dp"
+            android:src="@drawable/profile2"
+            android:scaleType="centerInside"
+            android:background="#FFFFFFFF"
+            android:onClick="img_2e_Clicked"/>
+
+        <ImageButton
+            android:id="@+id/img_3e"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.3"
+            android:padding="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="5dp"
+            android:src="@drawable/profile3"
+            android:scaleType="centerInside"
+            android:background="#FFFFFFFF"
+            android:onClick="img_3e_Clicked"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.22"
+        android:weightSum="0.9"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/img_4e"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.3"
+            android:padding="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="5dp"
+            android:src="@drawable/profile4"
+            android:scaleType="centerInside"
+            android:background="#FFFFFFFF"
+            android:onClick="img_4e_Clicked"/>
+
+        <ImageButton
+            android:id="@+id/img_5e"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.3"
+            android:padding="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="5dp"
+            android:src="@drawable/profile5"
+            android:scaleType="centerInside"
+            android:background="#FFFFFFFF"
+            android:onClick="img_5e_Clicked"/>
+
+        <ImageButton
+            android:id="@+id/img_6e"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.3"
+            android:padding="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="5dp"
+            android:src="@drawable/profile6"
+            android:scaleType="centerInside"
+            android:background="#FFFFFFFF"
+            android:onClick="img_6e_Clicked"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.22"
+        android:weightSum="0.9"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/img_7e"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.3"
+            android:padding="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="5dp"
+            android:src="@drawable/profile7"
+            android:scaleType="centerInside"
+            android:background="#FFFFFFFF"
+            android:onClick="img_7e_Clicked"/>
+
+        <ImageButton
+            android:id="@+id/img_8e"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.3"
+            android:padding="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="5dp"
+            android:src="@drawable/profile8"
+            android:scaleType="centerInside"
+            android:background="#FFFFFFFF"
+            android:onClick="img_8e_Clicked"/>
+
+        <ImageButton
+            android:id="@+id/img_9e"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.3"
+            android:padding="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="5dp"
+            android:src="@drawable/profile9"
+            android:scaleType="centerInside"
+            android:background="#FFFFFFFF"
+            android:onClick="img_9e_Clicked"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.19"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_edit_profile"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text=" 정  보  수  정 "
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:layout_marginTop="25dp"
+            android:layout_marginBottom="25dp"
+            android:onClick="btn_edit_profile_Clicked"/>
+
+    </LinearLayout>
+
+
+</LinearLayout>

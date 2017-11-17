@@ -74,8 +74,8 @@ public class SignupProfileActivity extends AppCompatActivity {
 
             data = (UserData) bundle.getParcelable(KEY_USER_DATA);
 
-            Toast.makeText(getApplicationContext(), "id : " + data.getID() + "\npw : " + data.getPW() + "\nname : " + data.getNAME()
-                    + "\ninfo : " + data.getINFO() + "\nurl : " + data.getURL(), Toast.LENGTH_LONG).show();
+            //Toast.makeText(getApplicationContext(), "id : " + data.getID() + "\npw : " + data.getPW() + "\nname : " + data.getNAME()
+            //        + "\ninfo : " + data.getINFO() + "\nurl : " + data.getURL(), Toast.LENGTH_LONG).show();
         }
     }
     public void btn_profile_signup_Clicked(View v) throws ExecutionException, InterruptedException {
@@ -106,18 +106,7 @@ public class SignupProfileActivity extends AppCompatActivity {
             intent.putExtra("result", result);
             setResult(RESULT_OK, intent);
             finish();
-            /*
-            if (result.equals("diff_id")) {
-                Toast.makeText(getApplicationContext(), "이미 존재하는 아이디 입니다.", Toast.LENGTH_LONG).show();
-                finish();
-            } else if (result.equals("signup_ok")) {
-                Toast.makeText(getApplicationContext(), "회원가입 완료.", Toast.LENGTH_LONG).show();
-                finish();
-            } else if (result.equals("signup_fail")) {
-                Toast.makeText(getApplicationContext(), "회원가입 실패.", Toast.LENGTH_LONG).show();
-                finish();
-            }
-            */
+
         }
     }
 }

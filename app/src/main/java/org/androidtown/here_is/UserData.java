@@ -19,7 +19,7 @@ public class UserData implements Parcelable {
     // youtube url
     String url;
     // profile photo index
-    // String index;
+    String index;
     /**
      * 데이터2개를이용하여초기화하는생성자
      * @paramnum
@@ -31,7 +31,18 @@ public class UserData implements Parcelable {
         name = NAME;
         info = INFO;
         url = URL;
+        index = "No_Index";
     }
+
+    public UserData(String ID, String PW, String NAME, String INFO, String URL, String Index) {
+        id = ID;
+        pw = PW;
+        name = NAME;
+        info = INFO;
+        url = URL;
+        index = Index;
+    }
+
     /**
      * 다른Parcel 객체를이용해초기화하는생성자
      * @paramsrc
@@ -42,6 +53,7 @@ public class UserData implements Parcelable {
         name = src.readString();
         info = src.readString();
         url = src.readString();
+        index = src.readString();
     }
     /**
      * 내부의CREATOR 객체생성
@@ -67,33 +79,40 @@ public class UserData implements Parcelable {
         dest.writeString(name);
         dest.writeString(info);
         dest.writeString(url);
+        dest.writeString(index);
     }
     public String getID() {
         return id;
     }
     public void setID(String id) {
-        this.id= id;
+        this.id = id;
     }
     public String getPW() {
         return pw;
     }
     public void setPW(String pw) {
-        this.pw= pw;
+        this.pw = pw;
     }
     public String getNAME() {
         return name;
     }
-    public void setNAME(String name) { this.name=name; }
+    public void setNAME(String name) { this.name = name; }
     public String getINFO() {
         return info;
     }
     public void setINFO(String info) {
-        this.info= info;
+        this.info = info;
     }
     public String getURL() {
         return url;
     }
     public void setURL(String url) {
-        this.url= url;
+        this.url = url;
+    }
+    public String getINDEX() {
+        return index;
+    }
+    public void setINDEX(String index) {
+        this.index = index;
     }
 }
