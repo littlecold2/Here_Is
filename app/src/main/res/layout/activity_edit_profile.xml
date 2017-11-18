@@ -86,7 +86,8 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_marginRight="30dp"
-            android:layout_weight="0.75" />
+            android:layout_weight="0.75"
+            android:inputType="textPassword"/>
 
     </LinearLayout>
 
@@ -144,7 +145,7 @@
             android:layout_weight="0.15"
             android:paddingLeft="15dp"
             android:paddingTop="10dp"
-            android:text="자기소개"
+            android:text="자기\n소개"
             android:textSize="15dp" />
 
         <EditText
