@@ -21,10 +21,10 @@
         />
 
     <ImageView
-        android:id="@+id/profileImage"
+        android:id="@+id/profileImage_dialog"
         android:layout_width="211dp"
         android:layout_height="198dp"
-        android:src="@drawable/image1"
+        android:src="@drawable/profile1"
         android:layout_gravity = "center"
         android:layout_weight="3"
         />

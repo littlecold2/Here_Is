@@ -7,17 +7,28 @@ package org.androidtown.here_is;
 public class Message {
     private String id;
     private String name;
+    private String intro;
     private Double latitude;
     private Double longitude;
     private int chat_room= -1;
     private String[] chat_id = {"",""};
     private String chat_text;
     private String chat_type = " ";
+    private int image=0;
 
     Message()
     {
     }
 
+    //in// room_req
+    Message(String chat_id1, String chat_id2, String name,int image,String chat_type)
+    {
+        this.chat_id[0]  = chat_id1;
+        this.chat_id[1]  = chat_id2;
+        this.chat_type =chat_type;
+        this.name =name;
+        this.image=image;
+    }
     //in// room_set
     Message(String chat_id1, String chat_id2, String chat_type)
     {
@@ -51,10 +62,12 @@ public class Message {
 
 
     //location info
-    Message(String id,String name, Double lat,Double lng,String chat_type)
+    Message(String id,String name,String intro,int image, Double lat,Double lng,String chat_type)
     {
         this.id  = id;
         this.name = name;
+        this.intro = intro;
+        this.image = image;
         latitude = lat;
         longitude= lng;
         this.chat_type =chat_type;
@@ -66,6 +79,10 @@ public class Message {
     String getName()
     {
         return name;
+    }
+    String getIntro()
+    {
+        return intro;
     }
     Double getLat()
     {
@@ -79,12 +96,8 @@ public class Message {
     String[] getChat_id(){return chat_id;}
     String getChat_text(){return chat_text;}
     String getChat_type(){return chat_type;}
-    //  void setkey_Chat(boolean key_chat){this.key_chat = key_chat;;}
-    //   void setChat_id(String myid, String targetid)
-    //  {
-    //     chat_id[0] = myid;
-    //    chat_id[1] = targetid;
-    //}
+    int getImage(){return image;}
+
 
 
 }

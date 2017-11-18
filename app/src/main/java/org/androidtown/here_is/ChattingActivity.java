@@ -1,11 +1,13 @@
 package org.androidtown.here_is;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.design.widget.Snackbar;
@@ -38,7 +40,15 @@ public class ChattingActivity extends AppCompatActivity  {
     private TextView messageView;
     private EditText sendEditText;
 
+    private SharedPreferences userinfo;
+    private String myID;
+    private String myName;
+    private String myIntro;
+    private int myImage_index;
+    private String myUrl;
+
     //########service ########
+    private Intent svcIntent;
     private ServiceConnection conn = new ServiceConnection() {
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
@@ -71,11 +81,20 @@ public class ChattingActivity extends AppCompatActivity  {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("chat","oncreateCHAT");
         setContentView(R.layout.activity_chatting);
         profieImg = (ImageView)findViewById(R.id.profileImg);
         idTextView = (TextView)findViewById(R.id.idTextView);
         messageView = (TextView)findViewById(R.id.messageView);
         sendEditText = (EditText)findViewById(R.id.sendEditText);
+
+        userinfo = getSharedPreferences("userinfo", Activity.MODE_PRIVATE);
+        myID = userinfo.getString("ID","");
+        myName= userinfo.getString("NAME","");
+        myIntro= userinfo.getString("INFO","");
+        myImage_index= Integer.parseInt(userinfo.getString("INDEX",""));
+        myUrl= userinfo.getString("URL","");
+       // CS = new ClientService();
 
         sendEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override public boolean onEditorAction(TextView v, int actionId, KeyEvent event)
@@ -89,7 +108,8 @@ public class ChattingActivity extends AppCompatActivity  {
             }
         });
 
-        startService(new Intent(this, ClientService.class));
+        svcIntent =new Intent(this, ClientService.class);
+        startService(svcIntent);
 //
 //        Intent getintent = getIntent();
 //       // targetID = getintent.getExtras().getString("targetID");
@@ -130,8 +150,8 @@ public class ChattingActivity extends AppCompatActivity  {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        if(isService &&CS.get_key_getMessage_ok()&&CS.getChat_room()!=-1) {
-                            CS.sendMessage(Jsonize(Build.ID, CS.getChat_room(), "chat", sendEditText.getText().toString()));
+                        if(isService &&CS.get_key_server_ok()&&CS.getChat_room()!=-1) {
+                            CS.sendMessage(Jsonize(myID, CS.getChat_room(), "chat", sendEditText.getText().toString()));
                             runOnUiThread(new Runnable() {
                                 public void run() {
                                     sendEditText.setText("");
@@ -159,11 +179,11 @@ public class ChattingActivity extends AppCompatActivity  {
         OUTBtn.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(isService &&CS.get_key_getMessage_ok()) {
+                if(isService &&CS.get_key_server_ok()) {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            CS.sendMessage(Jsonize(CS.getChat_room(), "logout"));
+                            CS.sendMessage(Jsonize(CS.getChat_room(), "chat_logout"));
 //                            my_thread.interrupt();
 //                            unbindService(conn);
                             //CS.setChat_text_clear();
@@ -204,10 +224,13 @@ public class ChattingActivity extends AppCompatActivity  {
 //        }
 
        // my_thread.interrupt();
-        unbindService(conn);
-
+        if(isService) {
+            stopService(svcIntent);
+            unbindService(conn);
+        }
         super.onDestroy();
     }
+
 
 //    @Override
 //    public void run() {
@@ -254,7 +277,7 @@ public class ChattingActivity extends AppCompatActivity  {
         return json;
 
     }
-    // logout
+    // chat_logout
     public String Jsonize(int chat_room ,String chat_type ) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
     {
 
@@ -262,5 +285,6 @@ public class ChattingActivity extends AppCompatActivity  {
         return json;
 
     }
+
 
 }

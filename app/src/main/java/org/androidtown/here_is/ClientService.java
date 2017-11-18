@@ -1,9 +1,12 @@
 package org.androidtown.here_is;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -39,7 +42,7 @@ public class ClientService extends Service implements Runnable {
 
     private List<Message> message_List;
     private List<Message> location_List;
-    private String chat_text="채팅방 비어있음.";
+    private String chat_text="채팅방 비어있음.\n";
     private String current_chat_text;
 
     private final IBinder mBinder = new Mybinder();
@@ -51,15 +54,21 @@ public class ClientService extends Service implements Runnable {
 
     private String j_inmsg=""; // 받은 메시지 저장
     private String j_outmsg="";
-    private boolean key_getMessage_ok = false;
+    private boolean key_message_ok =false;
+    private boolean key_server_ok = false;
     private boolean key_location_ok = false;
-    private boolean key_gps_ok =false;
-    private boolean key_socket_ok = false;
-    private boolean key_chat_ok =false;
     private int chat_room=-1;
 
     private static final String EXTRA_GET_MESSAGE ="current_chat_message";
     private static final String EXTRA_ALL_MESSAGE ="all_chat_message";
+    private static final String EXTRA_LOC_MESSAGE ="all_loc_message";
+
+    private SharedPreferences userinfo;
+    private String myID;
+    private String myName;
+    private String myIntro;
+    private int myImage_index;
+    private String myUrl;
 
     class Mybinder extends Binder {
         ClientService getService() {
@@ -72,15 +81,24 @@ public class ClientService extends Service implements Runnable {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d("chat","onCreate");
+        Log.d("CSV","Service onCreate");
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         listener = new MyLocationListener();
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 4000, 0, listener);
-        //locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 4000, 0, listener);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 4000, 0, listener);
         location_List = new ArrayList<>();
         message_List = new ArrayList<>();
+        userinfo = getSharedPreferences("userinfo", Activity.MODE_PRIVATE);
+        myID = userinfo.getString("ID","");
+        myName= userinfo.getString("NAME","");
+        myIntro= userinfo.getString("INFO","");
+        myImage_index= Integer.parseInt(userinfo.getString("INDEX",""));
+        myUrl= userinfo.getString("URL","");
+
+
         myThread= new Thread(this);
         myThread.start();
+
 
     }
 
@@ -88,7 +106,7 @@ public class ClientService extends Service implements Runnable {
     public int onStartCommand(Intent intent, int flags, int startId) {
 
 
-        Log.d("chat","onStartCommand");
+        Log.d("CSV","onStartCommand");
         SendBroadcast_chat(chat_text,EXTRA_ALL_MESSAGE);
         return super.onStartCommand(intent, flags, startId);
     }
@@ -97,7 +115,7 @@ public class ClientService extends Service implements Runnable {
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
 
-        Log.d("chat","onBind");
+        Log.d("CSV","Service onBind");
         return mBinder;
     }
 
@@ -106,15 +124,33 @@ public class ClientService extends Service implements Runnable {
     public void onDestroy() {
 
         Log.d("SCV","destroy");
-        try {
-            if(s!=null)
-                s.close();
+
+            if(key_server_ok)
+            {
+                try {
+                    s.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+//                inMsg.close();
+//                outMsg.close();
+//                new Thread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        Log.d("SCV","send logout");
+//                        sendMessage(Jsonize("logout"));
+//                    }
+//                }).start();
+
+
+
+        locationManager.removeUpdates(listener);
             locationManager.removeUpdates(listener);
+            //myThread.interrupt();
+            //myThread.interrupt();
             myThread.interrupt();
-            myThread.interrupt();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
         super.onDestroy();
     }
 
@@ -135,38 +171,32 @@ public class ClientService extends Service implements Runnable {
 
     public void run() // 쓰레드 시작부분
     {
-
         Log.d("CSV", a_targetIp+ " " +String.format(Locale.KOREA,"%d",a_targetPort));
 
-
+        
         while ( !myThread.isInterrupted()) //
         {
-
-            if(!locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER))
-            {
-                Log.d("CSV", "no gps connect");
-                key_gps_ok =false;
-            }
-            else
-            {
-                key_gps_ok =true;
-            }
-            if(s==null||s.isClosed()) {
-                key_getMessage_ok =false;
-                connectServer(a_targetIp, a_targetPort);
-            }
-            if(get_key_getlocation_ok()&&s!=null&&!s.isClosed()) {
+            //Log.d("CSV", "service ~~~~~~~~~");
+            try {
+//                if (!locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+//                    SendBroadcast_map("GPS를 켜주세요.", EXTRA_GET_MESSAGE);
+//                    Thread.sleep(3500);
+//                } else if (!key_location_ok) {
+//                    SendBroadcast_map("위치 확인중...", EXTRA_GET_MESSAGE);
+//                    Thread.sleep(3500);
+//                }
+                if (key_location_ok && !key_server_ok &&(s == null || s.isClosed())) {
+                    connectServer(a_targetIp, a_targetPort);
+                }
+                if (key_server_ok&& s != null) {
                     // 서버에 연결 하는 함수 받아온 ip.port 넘겨줌
                     Log.d("CSV", "msging");
-                    if(!key_getMessage_ok)
-                        sendMessage(j_outmsg);
-                    MessageController(); // 서버에 현재 위치정보 담아서 보냄
-
-            }
-            else
-                try {
+                    MessageController();
+                }
+                else
                     Thread.sleep(3000);
-                } catch (InterruptedException e) {
+
+            }catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     e.printStackTrace();
                 }
@@ -185,9 +215,9 @@ public class ClientService extends Service implements Runnable {
             // 입출력 스트림 생성
             inMsg = new BufferedReader(new InputStreamReader(s.getInputStream())); // 수신 메시지 담을 버퍼
             outMsg = new PrintWriter(s.getOutputStream(),true); //송신 메시지 롸이터
-            Log.d("D_socket", Build.USER);
+            outMsg.println(j_outmsg);
 
-
+            key_server_ok=true;
 
         }catch(Exception e) {
             Log.d("D_socket", "Error : " + e);
@@ -205,21 +235,32 @@ public class ClientService extends Service implements Runnable {
         try {
             Log.d("CSV", "j_outmsg: "+j_outmsg);
              // JSON화한 메시지를 서버로 보냄 (내정보, 내위치, 경도)
+            //sendMessage(j_outmsg);
             j_inmsg = inMsg.readLine(); // 내가 메시지 보낸 이후 서버에서 보낸 메시지 수신
-
             message_List= gson.fromJson(j_inmsg, new TypeToken<ArrayList<Message>>() {}.getType()); // 서버에서 받은 메시지(모든 클라이언트의 이름,위치 메시지 리스트)를 JSON->Gosn-> ArrayList<Userdata>로 해서 저장
 
             if(message_List.get(0).getChat_type().equals("location"))
             {
                 outMsg.println(j_outmsg);
+                SendBroadcast_map(j_inmsg,EXTRA_LOC_MESSAGE);
                 location_List=message_List;
             }
-            else if(message_List.get(0).getChat_type().equals("room_set")&& chat_room==-1
-                    &&(message_List.get(0).getChat_id()[0].equals(Build.ID)||message_List.get(0).getChat_id()[1].equals(Build.ID)))
+            else if(message_List.get(0).getChat_type().equals("room_req")&& chat_room==-1
+                    &&message_List.get(0).getChat_id()[1].equals(myID))
             {
-                    chat_text="";
+                SendBroadcast_chat_req(message_List.get(0).getChat_id()[0],message_List.get(0).getName(),message_List.get(0).getImage());
+                Log.d("req",message_List.get(0).getChat_id()[0]);
+                return;
+            }
+
+            else if(message_List.get(0).getChat_type().equals("room_set")&& chat_room==-1
+                    &&(message_List.get(0).getChat_id()[0].equals(myID)||message_List.get(0).getChat_id()[1].equals(myID)))
+            {
                     chat_room=message_List.get(0).getChat_room();
-                    sendMessage(Jsonize(Build.ID,getChat_room(),"chat", "님이 입장 하였습니다."));
+                    chat_text = message_List.get(0).getChat_id()[0] +"님이 입장 하였습니다.\n";
+                    chat_text += message_List.get(0).getChat_id()[1] +"님이 입장 하였습니다.\n";
+                    //SendBroadcast_chat(chat_text,EXTRA_ALL_MESSAGE);
+
                     Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     startActivity(intent);
@@ -227,25 +268,34 @@ public class ClientService extends Service implements Runnable {
             else if(message_List.get(0).getChat_type().equals("chat")&&chat_room==message_List.get(0).getChat_room())
             {
                 chat_text += message_List.get(0).getId()+(": ")+ message_List.get(0).getChat_text()+("\n");
-                current_chat_text = "메시지 도착함, " + message_List.get(0).getId()+(": ")+ message_List.get(0).getChat_text()+("\n");
+                current_chat_text = "메시지 도착,  " + message_List.get(0).getId()+(": ")+ message_List.get(0).getChat_text()+("\n");
                 SendBroadcast_map(current_chat_text,EXTRA_GET_MESSAGE);
                 SendBroadcast_chat(chat_text,EXTRA_ALL_MESSAGE);
             }
-            else if(message_List.get(0).getChat_type().equals("logout")&&chat_room==message_List.get(0).getChat_room())
+            else if(message_List.get(0).getChat_type().equals("chat_logout")&&chat_room==message_List.get(0).getChat_room())
             {
                 chat_text+="상대방이 채팅방을 떠났습니다.\n";
                 SendBroadcast_map("상대방이 채팅방을 떠났습니다.\n",EXTRA_GET_MESSAGE);
                 SendBroadcast_chat(chat_text,EXTRA_ALL_MESSAGE);
                 chat_room =-1;
             }
-            key_getMessage_ok=true;
             Log.d("CSV","j_inmsg: "+j_inmsg);
             Log.d("chat","now chatroom: " +chat_room);
 
-        } catch (IOException e) {
+        } catch(NullPointerException e) {
+            key_server_ok=false;
+            try {
+                s.close();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            return;}
+        catch (IOException e) {
+            key_server_ok=false;
+            Thread.currentThread().interrupt();
             e.printStackTrace();
+            return;
         }
-
 
         // return inmsg;
     }// messageController
@@ -260,7 +310,7 @@ public class ClientService extends Service implements Runnable {
         LocalBroadcastManager.getInstance(this).sendBroadcast(it);
     }
     private void SendBroadcast_map(String message,String key) {
-        Intent it = new Intent("EVENT_SNACKBAR");
+        Intent it = new Intent("EVENT_STRING_TO_MAP");
 
 
         if (!TextUtils.isEmpty(message))
@@ -268,39 +318,42 @@ public class ClientService extends Service implements Runnable {
 
         LocalBroadcastManager.getInstance(this).sendBroadcast(it);
     }
+    private void SendBroadcast_chat_req(String id,String name,int image) {
+        Intent it = new Intent("EVENT_CHAT_REQ_MAP");
+
+        if (!TextUtils.isEmpty(name)&&!TextUtils.isEmpty(id)) {
+            it.putExtra("ID", id);
+            it.putExtra("NAME", name);
+            it.putExtra("IMAGE", image);
+        }
+        LocalBroadcastManager.getInstance(this).sendBroadcast(it);
+    }
+    private void SendBroadcast_loc(Double Lat,Double Lng) {
+        Intent it = new Intent("EVENT_LOC");
 
 
-    public List<Message> getLocation_List()
-    {
-        return location_List;
+        if (Lat!=null) {
+            it.putExtra("Lat", Lat);
+            it.putExtra("Lng", Lng);
+        }
+        LocalBroadcastManager.getInstance(this).sendBroadcast(it);
     }
-    public String getChat_text()
-    {
-        return chat_text;
-    }
-    public void set_appendChat_text(String chat_text){this.chat_text +=chat_text;}
-    public boolean get_key_getMessage_ok()
-    {
-        return key_getMessage_ok;
-    }
-    public boolean get_key_getlocation_ok() {return  key_location_ok;}
-    public boolean get_key_gps_ok()
-    {
-        return key_gps_ok;
-    }
-    public boolean get_key_chat_ok() { return key_chat_ok;}
-    public void set_ket_chat_ok(boolean ket_chat_ok){this.key_chat_ok=key_chat_ok;}
-    public String get_current_chat_text(){return current_chat_text;}
-    public Socket getSocket(){return s;}
+
+
+    public boolean get_key_location_ok(){return  key_location_ok;}
+    public boolean get_key_server_ok(){return  key_server_ok;}
     public Location getMyLocation(){return lastKnownLocation;}
+    public void set_chat_text(String chat_text){this.chat_text=chat_text;}
     public int getChat_room(){return chat_room;}
+
+
     public void sendMessage(String outmsg) {Log.d("chat",outmsg); outMsg.println(outmsg);}
 
 
-    public String Jsonize(String id, String name, Double lat,  Double lng,String chat_type) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
+    public String Jsonize(String id, String name, String intro,int image,Double lat,  Double lng,String chat_type) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
     {
 
-        String json = new Gson().toJson(new Message(id,name,lat,lng,chat_type)); //Data -> Gson -> json
+        String json = new Gson().toJson(new Message(id,name,intro,image,lat,lng,chat_type)); //Data -> Gson -> json
         return json;
 
     }
@@ -314,6 +367,7 @@ public class ClientService extends Service implements Runnable {
     }
 
 
+
     public class MyLocationListener implements LocationListener
     {
 
@@ -322,11 +376,12 @@ public class ClientService extends Service implements Runnable {
         public void onLocationChanged(Location location) {
 //            LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
             // Get the last location.
+            Log.d("loclistener","loc");
             lastKnownLocation = location; // 업데이트 된 주소 저장
             Log.d("lastKnownLocation : ",lastKnownLocation.toString());
             locationManager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER, // 네트워크+gps 이용 업데이트
-                    1000, //1초마다
+                    1500, //1초마다
                     0, // 최소 거리 10미터
                     listener
             );
@@ -334,7 +389,7 @@ public class ClientService extends Service implements Runnable {
             {
                 Log.d("CSV", "n" +
                         "ot connect");
-                Toast.makeText(getApplicationContext(), "서버 연결 안됨, 위치 받아옴 "+String.format(Locale.KOREA, "%.3f", lastKnownLocation.getLatitude()) + " , " + String.format(Locale.KOREA, "%.3f", lastKnownLocation.getLongitude()), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "서버 연결 안됨\n 위치 받아옴 "+String.format(Locale.KOREA, "%.3f", lastKnownLocation.getLatitude()) + " , " + String.format(Locale.KOREA, "%.3f", lastKnownLocation.getLongitude()), Toast.LENGTH_SHORT).show();
             }
             else { // 서버 연결 됫으면 메세지 받은 걸 텍스트 뷰에 뿌림
 //                Toast.makeText(getApplicationContext(),"메시지 받음",Toast.LENGTH_SHORT).show();
@@ -342,12 +397,16 @@ public class ClientService extends Service implements Runnable {
 //                    Log.d("CSV","Userlist: "+"name: " + ud.getName() + " lat: " + ud.getLat() + " lng: " + ud.getLng()+"\n");
 //                }
             }
-            if( lastKnownLocation.hasAltitude()) { // lastKnownLocation이 위치를
-                j_outmsg = Jsonize(Build.ID, Build.USER,lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude(),"location");
+            if( lastKnownLocation.hasAltitude() && lastKnownLocation!=null) { // lastKnownLocation이 위치를
+                Log.d("!!!!!!!", "n" +lastKnownLocation);
+                SendBroadcast_loc(lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude());
+                j_outmsg = Jsonize(myID, myName,myIntro,myImage_index,lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude(),"location");
                 key_location_ok=true;
 
             }
+
         }
+
 
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -358,15 +417,16 @@ public class ClientService extends Service implements Runnable {
         @Override
         public void onProviderEnabled(String provider) {
             Toast.makeText(getApplicationContext(),"GPS 켜짐.",Toast.LENGTH_LONG).show();
-                key_gps_ok =true;
         }
 
         @Override
         public void onProviderDisabled(String provider) {
             Toast.makeText(getApplicationContext(),"GPS 꺼짐.",Toast.LENGTH_LONG).show();
-            key_gps_ok =false;
         }
     }
+
+
+
 }
 
 

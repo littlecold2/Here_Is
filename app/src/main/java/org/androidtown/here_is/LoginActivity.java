@@ -30,6 +30,7 @@ public class LoginActivity extends AppCompatActivity {
         ID = (EditText) findViewById(R.id.editText_ID);
         PW = (EditText) findViewById(R.id.editText_PW);
         Login = (Button) findViewById(R.id.btn_login_check);
+
     }
 
     public void btn_login_check_Clicked(View v) throws ExecutionException, InterruptedException, JSONException {
@@ -75,7 +76,7 @@ public class LoginActivity extends AppCompatActivity {
 
                 //로그인 성공이므로 MapActivity 실행
                 //Intent intent = new Intent(getApplicationContext(), MapActivity.class);
-                Intent intent = new Intent(getApplicationContext(), shared_test.class);
+                Intent intent = new Intent(getApplicationContext(), MapActivity.class);
                 intent.putExtra(KEY_BEFORE_USER_DATA, userInfo);
                 startActivity(intent);
                 finish();
@@ -86,6 +87,7 @@ public class LoginActivity extends AppCompatActivity {
 
         }
     }
+
 
 
     protected void saveUserinfo(UserData userData) {
@@ -100,4 +102,5 @@ public class LoginActivity extends AppCompatActivity {
         editor.putString("INDEX", userData.getINDEX());
         editor.commit();
     }
+
 }
