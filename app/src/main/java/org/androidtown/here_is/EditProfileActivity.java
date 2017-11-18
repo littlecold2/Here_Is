@@ -1,6 +1,8 @@
 package org.androidtown.here_is;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -14,17 +16,29 @@ public class EditProfileActivity extends AppCompatActivity {
 
     EditText ID, PW, NAME, INFO, URL;
     Button btn_Edit_index;
+    SharedPreferences userinfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_profile);
 
+        userinfo = getSharedPreferences("userinfo", Activity.MODE_PRIVATE);
+
         ID = (EditText) findViewById(R.id.editText_profile_id);
         PW = (EditText) findViewById(R.id.editText_profile_pw);
         NAME = (EditText) findViewById(R.id.editText_profile_name);
         INFO = (EditText) findViewById(R.id.editText_profile_info);
-        URL = (EditText) findViewById(R.id.editText_youtube_url);
+        URL = (EditText) findViewById(R.id.editText_profile_youtube_url);
+
+        ID.setText(userinfo.getString("ID", ""));
+        PW.setText(userinfo.getString("PW", ""));
+        NAME.setText(userinfo.getString("NAME", ""));
+        INFO.setText(userinfo.getString("INFO", ""));
+        if(!userinfo.getString("URL","").equals("NO URL")) {
+            URL.setText(userinfo.getString("URL", ""));
+        }
+        //INDEX.setText(userinfo.getString("INDEX", ""));
 
         btn_Edit_index = (Button) findViewById(R.id.btn_edit_index);
     }

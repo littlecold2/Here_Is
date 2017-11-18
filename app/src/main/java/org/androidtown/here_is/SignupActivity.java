@@ -90,7 +90,7 @@ public class SignupActivity extends AppCompatActivity {
                 String name = NAME.getText().toString();
                 String info = INFO.getText().toString();
                 String url = "";
-                if(URL.getText().equals("")) {
+                if(URL.getText().toString().equals("")) {
                     url = "NO URL";
                 }
                 else {
