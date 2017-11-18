@@ -28,8 +28,7 @@ import com.google.gson.Gson;
 public class ChattingActivity extends AppCompatActivity  {
 
 
-    private Thread my_thread;
-    private String targetID;
+
 
     //########service ########
     private ClientService CS ;
@@ -46,6 +45,9 @@ public class ChattingActivity extends AppCompatActivity  {
     private String myIntro;
     private int myImage_index;
     private String myUrl;
+
+    private String chatName="비어있음";
+    private int image_index=1;
 
     //########service ########
     private Intent svcIntent;
@@ -68,12 +70,14 @@ public class ChattingActivity extends AppCompatActivity  {
 
     //########브로드 캐스트#######
     private BroadcastReceiver mMessageReceiver = null;
+    private BroadcastReceiver setMessageReceiver = null;
     private static final String EXTRA_GET_MESSAGE ="current_chat_message";
     private static final String EXTRA_ALL_MESSAGE ="all_chat_message";
     @Override
     protected void onPostResume() {
         super.onPostResume();
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("EVENT_CHAT"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(setMessageReceiver, new IntentFilter("EVENT_CHAT_SET"));
     }
 // ########브로드 캐스트#######
 
@@ -87,6 +91,9 @@ public class ChattingActivity extends AppCompatActivity  {
         idTextView = (TextView)findViewById(R.id.idTextView);
         messageView = (TextView)findViewById(R.id.messageView);
         sendEditText = (EditText)findViewById(R.id.sendEditText);
+
+
+
 
         userinfo = getSharedPreferences("userinfo", Activity.MODE_PRIVATE);
         myID = userinfo.getString("ID","");
@@ -110,11 +117,13 @@ public class ChattingActivity extends AppCompatActivity  {
 
         svcIntent =new Intent(this, ClientService.class);
         startService(svcIntent);
-//
-//        Intent getintent = getIntent();
-//       // targetID = getintent.getExtras().getString("targetID");
-        Intent intent = new Intent(ChattingActivity.this, ClientService.class);
+        final Intent intent = new Intent(ChattingActivity.this, ClientService.class);
         bindService(intent, conn, Context.BIND_AUTO_CREATE);
+
+        String resName = "@drawable/profile" + image_index;
+        int resID = getResources().getIdentifier(resName, "drawable", this.getPackageName());
+        profieImg.setImageResource(resID);
+        idTextView.setText(chatName);
 
         //브로드캐스트
         mMessageReceiver = new BroadcastReceiver() {
@@ -122,6 +131,17 @@ public class ChattingActivity extends AppCompatActivity  {
             public void onReceive(Context context, Intent intent) {
                 String message = intent.getExtras().getString(EXTRA_ALL_MESSAGE);
                 messageView.setText(message);
+            }
+        };
+        setMessageReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                chatName = intent.getExtras().getString("name");
+                image_index = intent.getExtras().getInt("image");
+                String resName = "@drawable/profile" + image_index;
+                int resID = getResources().getIdentifier(resName, "drawable", getApplicationContext().getPackageName());
+                profieImg.setImageResource(resID);
+                idTextView.setText(chatName);
             }
         };
 // 브로드캐스트
@@ -151,7 +171,7 @@ public class ChattingActivity extends AppCompatActivity  {
                     @Override
                     public void run() {
                         if(isService &&CS.get_key_server_ok()&&CS.getChat_room()!=-1) {
-                            CS.sendMessage(Jsonize(myID, CS.getChat_room(), "chat", sendEditText.getText().toString()));
+                            CS.sendMessage(Jsonize(myID,myName, CS.getChat_room(), "chat", sendEditText.getText().toString()));
                             runOnUiThread(new Runnable() {
                                 public void run() {
                                     sendEditText.setText("");
@@ -185,13 +205,15 @@ public class ChattingActivity extends AppCompatActivity  {
                         public void run() {
                             CS.sendMessage(Jsonize(CS.getChat_room(), "chat_logout"));
 //                            my_thread.interrupt();
-//                            unbindService(conn);
+          //                  unbindService(conn);
+                  //          stopService(svcIntent);
+                            finish();
                             //CS.setChat_text_clear();
                         }
                     }).start();
                 }
                // onBackPressed();
-                finish();
+
             }
         });
 
@@ -225,8 +247,9 @@ public class ChattingActivity extends AppCompatActivity  {
 
        // my_thread.interrupt();
         if(isService) {
-            stopService(svcIntent);
             unbindService(conn);
+            stopService(svcIntent);
+
         }
         super.onDestroy();
     }
@@ -261,19 +284,12 @@ public class ChattingActivity extends AppCompatActivity  {
 
 
 
-    //setroom
-    public String Jsonize(String chat_id1, String chat_id2,String chat_type ) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
-    {
 
-        String json = new Gson().toJson(new Message(chat_id1,chat_id2,chat_type)); //Data -> Gson -> json
-        return json;
-
-    }
     // chat
-    public String Jsonize(String id, int chat_room,String chat_type,String chat_text) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
+    public String Jsonize(String id, String name,int chat_room,String chat_type,String chat_text) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
     {
 
-        String json = new Gson().toJson(new Message(id,chat_room,chat_type,chat_text)); //Data -> Gson -> json
+        String json = new Gson().toJson(new Message(id,name,chat_room,chat_type,chat_text)); //Data -> Gson -> json
         return json;
 
     }

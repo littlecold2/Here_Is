@@ -12,8 +12,8 @@
             android:id="@+id/chat"
             android:title="채팅" />
         <item
-            android:id="@+id/etc"
-            android:title="기타메뉴" />
+            android:id="@+id/logout"
+            android:title="로그아웃" />
     </group>
 
     <item android:title="Communicate">

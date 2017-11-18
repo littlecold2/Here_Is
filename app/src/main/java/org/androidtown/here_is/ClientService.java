@@ -58,6 +58,8 @@ public class ClientService extends Service implements Runnable {
     private boolean key_server_ok = false;
     private boolean key_location_ok = false;
     private int chat_room=-1;
+    private String chat_name = "비어있음";
+    private int chat_image_index = 1;
 
     private static final String EXTRA_GET_MESSAGE ="current_chat_message";
     private static final String EXTRA_ALL_MESSAGE ="all_chat_message";
@@ -108,6 +110,7 @@ public class ClientService extends Service implements Runnable {
 
         Log.d("CSV","onStartCommand");
         SendBroadcast_chat(chat_text,EXTRA_ALL_MESSAGE);
+        SendBroadcast_chat(chat_name,chat_image_index);
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -249,6 +252,7 @@ public class ClientService extends Service implements Runnable {
                     &&message_List.get(0).getChat_id()[1].equals(myID))
             {
                 SendBroadcast_chat_req(message_List.get(0).getChat_id()[0],message_List.get(0).getName(),message_List.get(0).getImage());
+
                 Log.d("req",message_List.get(0).getChat_id()[0]);
                 return;
             }
@@ -257,8 +261,8 @@ public class ClientService extends Service implements Runnable {
                     &&(message_List.get(0).getChat_id()[0].equals(myID)||message_List.get(0).getChat_id()[1].equals(myID)))
             {
                     chat_room=message_List.get(0).getChat_room();
-                    chat_text = message_List.get(0).getChat_id()[0] +"님이 입장 하였습니다.\n";
-                    chat_text += message_List.get(0).getChat_id()[1] +"님이 입장 하였습니다.\n";
+                    chat_text = message_List.get(0).getChat_name()[0] +"님이 입장 하였습니다.\n";
+                    chat_text += message_List.get(0).getChat_name()[1] +"님이 입장 하였습니다.\n";
                     //SendBroadcast_chat(chat_text,EXTRA_ALL_MESSAGE);
 
                     Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
@@ -267,8 +271,8 @@ public class ClientService extends Service implements Runnable {
             }
             else if(message_List.get(0).getChat_type().equals("chat")&&chat_room==message_List.get(0).getChat_room())
             {
-                chat_text += message_List.get(0).getId()+(": ")+ message_List.get(0).getChat_text()+("\n");
-                current_chat_text = "메시지 도착,  " + message_List.get(0).getId()+(": ")+ message_List.get(0).getChat_text()+("\n");
+                chat_text += message_List.get(0).getName()+(": ")+ message_List.get(0).getChat_text()+("\n");
+                current_chat_text = "메시지 도착,  " + message_List.get(0).getName()+(": ")+ message_List.get(0).getChat_text()+("\n");
                 SendBroadcast_map(current_chat_text,EXTRA_GET_MESSAGE);
                 SendBroadcast_chat(chat_text,EXTRA_ALL_MESSAGE);
             }
@@ -309,6 +313,17 @@ public class ClientService extends Service implements Runnable {
 
         LocalBroadcastManager.getInstance(this).sendBroadcast(it);
     }
+    private void SendBroadcast_chat(String name,int image_index) {
+        Intent it = new Intent("EVENT_CHAT_SET");
+
+
+        if (!TextUtils.isEmpty(name)){
+            it.putExtra("name",name);
+            it.putExtra("image",image_index);
+        }
+
+        LocalBroadcastManager.getInstance(this).sendBroadcast(it);
+    }
     private void SendBroadcast_map(String message,String key) {
         Intent it = new Intent("EVENT_STRING_TO_MAP");
 
@@ -320,7 +335,7 @@ public class ClientService extends Service implements Runnable {
     }
     private void SendBroadcast_chat_req(String id,String name,int image) {
         Intent it = new Intent("EVENT_CHAT_REQ_MAP");
-
+Log.d("req","reqbraod");
         if (!TextUtils.isEmpty(name)&&!TextUtils.isEmpty(id)) {
             it.putExtra("ID", id);
             it.putExtra("NAME", name);
@@ -343,25 +358,27 @@ public class ClientService extends Service implements Runnable {
     public boolean get_key_location_ok(){return  key_location_ok;}
     public boolean get_key_server_ok(){return  key_server_ok;}
     public Location getMyLocation(){return lastKnownLocation;}
-    public void set_chat_text(String chat_text){this.chat_text=chat_text;}
     public int getChat_room(){return chat_room;}
-
+    public String getChat_name(){return chat_name;}
+    public int getMyImage_index(){return chat_image_index;}
+    public void setChat_name(String name){chat_name = name;}
+    public void setChat_image_index(int img){chat_image_index = img;}
 
     public void sendMessage(String outmsg) {Log.d("chat",outmsg); outMsg.println(outmsg);}
 
 
-    public String Jsonize(String id, String name, String intro,int image,Double lat,  Double lng,String chat_type) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
+    public String Jsonize(String id, String name, String intro,int image,String url ,Double lat,  Double lng,String chat_type) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
     {
 
-        String json = new Gson().toJson(new Message(id,name,intro,image,lat,lng,chat_type)); //Data -> Gson -> json
+        String json = new Gson().toJson(new Message(id,name,intro,image,url,lat,lng,chat_type)); //Data -> Gson -> json
         return json;
 
     }
     // chat
-    public String Jsonize(String id, int chat_room,String chat_type,String chat_text) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
+    public String Jsonize(String id, String name,int chat_room,String chat_type,String chat_text) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
     {
 
-        String json = new Gson().toJson(new Message(id,chat_room,chat_type,chat_text)); //Data -> Gson -> json
+        String json = new Gson().toJson(new Message(id,name,chat_room,chat_type,chat_text)); //Data -> Gson -> json
         return json;
 
     }
@@ -400,7 +417,7 @@ public class ClientService extends Service implements Runnable {
             if( lastKnownLocation.hasAltitude() && lastKnownLocation!=null) { // lastKnownLocation이 위치를
                 Log.d("!!!!!!!", "n" +lastKnownLocation);
                 SendBroadcast_loc(lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude());
-                j_outmsg = Jsonize(myID, myName,myIntro,myImage_index,lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude(),"location");
+                j_outmsg = Jsonize(myID, myName,myIntro,myImage_index,myUrl,lastKnownLocation.getLatitude(),lastKnownLocation.getLongitude(),"location");
                 key_location_ok=true;
 
             }

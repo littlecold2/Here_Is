@@ -19,6 +19,7 @@ import android.hardware.usb.UsbRequest;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -86,6 +87,7 @@ public class MapActivity extends AppCompatActivity
     private ArrayList<Marker> L_Marker_userlist;
     private FloatingActionButton fab,menu_fab;
     private Gson gson;
+    private boolean dialog_key =false;
 
     //################ Profile View ################
     private LayoutInflater inflater;
@@ -99,6 +101,9 @@ public class MapActivity extends AppCompatActivity
     private Button Btn_Streaming;
 //################ Profile View ################
 
+    private ImageView naviProfile;
+    private TextView naviName;
+    private TextView naviIntro;
 //########service ########
     private ClientService CS;
     private boolean isService = false;
@@ -190,6 +195,23 @@ public class MapActivity extends AppCompatActivity
         toggle.syncState();
 
         final NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+
+
+        View navi_header  = navigationView.getHeaderView(0);
+
+       // View navi  = navigationView.inflateHeaderView(R.layout.nav_header_map);
+
+        naviProfile = (ImageView) navi_header.findViewById(R.id.naviImage) ;
+        naviName = (TextView) navi_header.findViewById(R.id.naviName);
+        naviIntro= (TextView) navi_header.findViewById(R.id.naviIntro);
+
+        String resName = "@drawable/profile" + myImage_index;
+        Log.d("img",resName);
+        int resID_ = getResources().getIdentifier(resName, "drawable", this.getPackageName());
+        naviProfile.setImageResource(resID_);
+        naviName.setText(myName);
+        naviIntro.setText(myIntro);
+
         navigationView.setNavigationItemSelectedListener(this);
 
         // 편지 아이콘
@@ -246,7 +268,7 @@ public class MapActivity extends AppCompatActivity
                     for (Message mg : User_loc_List) {
                         if (mg.getChat_room() == -1) {
                             pickMark(new LatLng(mg.getLat(), mg.getLng()), mg.getName(), mg.getIntro(),mg.getImage(), mg);
-                            tv.append("name: " + mg.getName() + "위치: " + mg.getLat() + ", " + mg.getLng());
+                            tv.append("name: " + mg.getName() + "위치: " + mg.getLat() + ", " + mg.getLng()+"\n");
                         }
 
                     }
@@ -278,11 +300,15 @@ public class MapActivity extends AppCompatActivity
         mMessageReceiver_chat_req = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                String  id = intent.getExtras().getString("ID");
-                String  name = intent.getExtras().getString("NAME");
-                int image = intent.getExtras().getInt("IMAGE");
 
-                showdialog(id,name,image);
+                if(dialog_key==false) {
+                    Log.d("dialog", "broad_dialog_up");
+                    String id = intent.getExtras().getString("ID");
+                    String name = intent.getExtras().getString("NAME");
+                    int image = intent.getExtras().getInt("IMAGE");
+                    showdialog(id, name, image);
+
+                }
 
 
             }
@@ -292,9 +318,10 @@ public class MapActivity extends AppCompatActivity
 
     }// oncreate
 
-    private void showdialog(final String id, String name, int image) {
+    private void showdialog(final String id, final String name, final int image) {
 // 대화상자를만들기위한빌더객체생성
-
+        Log.d("dialog","crate");
+        dialog_key=true;
         String resName = "@drawable/profile" + image;
         int resID = getResources().getIdentifier(resName, "drawable", this.getPackageName());
 
@@ -305,29 +332,31 @@ public class MapActivity extends AppCompatActivity
 
 
         builder.setIcon(resID);
-        builder.setCancelable(false);
+        //builder.setCancelable(false);
 
         builder.setPositiveButton("네", new DialogInterface.OnClickListener() { // 예버튼
             public void onClick(DialogInterface dialog, int whichButton) {
 
-                if(CS.getChat_room()==-1) {
+
+                if (CS.getChat_room() == -1) {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            CS.sendMessage(Jsonize(myID, id, "room_set"));
+                            CS.sendMessage(Jsonize(myID, id, myName, name, "room_set"));
+                            CS.setChat_name(name);
+                            CS.setChat_image_index(image);
                         }
                     }).start();
                 }
-                //dialog.cancel();
+                dialog_key=false;
                 dialog.dismiss();
-                return;
-            }
-        });
 
-        builder.setNegativeButton("아니오", new DialogInterface.OnClickListener() { // 아니오버튼
+            }
+        }).setNegativeButton("아니오", new DialogInterface.OnClickListener() { // 아니오버튼
             public void onClick(DialogInterface dialog, int whichButton) {
                 Toast.makeText(getApplicationContext(), "채팅을 취소 하였습니다.", Toast.LENGTH_SHORT).show();
                 //dialog.cancel();
+                dialog_key=false;
                 dialog.dismiss();
                 return;
             }
@@ -335,10 +364,11 @@ public class MapActivity extends AppCompatActivity
 
 
         AlertDialog dialog = builder.create();// 대화상자객체생성후보여주기
+        dialog.show();
 
 
-        if(!isFinishing())
-            dialog.show();
+       // if(!isFinishing())
+
     }
 
     @Override
@@ -386,7 +416,7 @@ public class MapActivity extends AppCompatActivity
 
         map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override //마커 클릭시
-            public boolean onMarkerClick(Marker marker) {
+            public boolean onMarkerClick(final Marker marker) {
                 //################ Profile View ################
                 if(((Message)marker.getTag())==null)
                     Toast.makeText(getApplicationContext(), "자신의 마커 입니다.", Toast.LENGTH_SHORT).show();
@@ -402,7 +432,7 @@ public class MapActivity extends AppCompatActivity
                     introView = (TextView) profileView.findViewById((R.id.introView));
                     targetID = ((Message) marker.getTag()).getId();
                     Btn_chatting = (Button) profileView.findViewById(R.id.chatBtn);
-                    Btn_Streaming = (Button) profileView.findViewById(R.id.StreamingBtn);
+                    Btn_Streaming = (Button) profileView.findViewById(R.id.chatStreaming);
                     // 채팅버튼 누를 때
 
                     String resName = "@drawable/profile" + ((Message) marker.getTag()).getImage();
@@ -410,7 +440,7 @@ public class MapActivity extends AppCompatActivity
 
                     AlertDialog.Builder buider = new AlertDialog.Builder(MapActivity.this); //AlertDialog.Builder 객체 생성
 
-                    buider.setTitle("Member Information"); //Dialog 제목
+                    buider.setTitle("사용자 정보"); //Dialog 제목
                     buider.setIcon(android.R.drawable.ic_menu_add); //제목옆의 아이콘 이미지(원하는 이미지 설정)
 
                     profileImage.setImageResource(resID);
@@ -441,10 +471,26 @@ public class MapActivity extends AppCompatActivity
                                 Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
                                 startActivity(intent);
+                                dialog.cancel();
                             }
                         }
                     });
                     //################ Profile View ################
+                    Btn_Streaming.setOnClickListener(new Button.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Log.d("url","url: " +((Message) marker.getTag()).getUrl());
+                            if( ((Message) marker.getTag()) .getUrl().isEmpty() ) {
+                                Toast.makeText(getApplicationContext(), "스트리밍 주소가 없습니다.", Toast.LENGTH_LONG).show();
+                            }
+                            else
+                            {
+                                startActivity(new Intent(Intent.ACTION_VIEW).setData(Uri.parse(((Message) marker.getTag()).getUrl()))
+                                        .setPackage("com.google.android.youtube"));
+                            }
+                    }
+                    });
+//
 
 //
                 }
@@ -544,17 +590,10 @@ public class MapActivity extends AppCompatActivity
         markerOptions.draggable(true); // 드래그 가능하도록
         markerOptions.flat(true);
 
-        if(L_Marker_userlist.size()==0)
-        {
-            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.image1));
-        }
-        else if (L_Marker_userlist.size() == 1) {
-            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.image2));
-        }
-        else if(L_Marker_userlist.size()>1)
-        {
-            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.image3));
-        }
+        String resName = "@drawable/profile" + myImage_index;
+        int resID = getResources().getIdentifier(resName, "drawable", this.getPackageName());
+
+        markerOptions.icon(BitmapDescriptorFactory.fromResource(resID));
         // map.addMarker(markerOptions).setFlat(true);
 
 
@@ -570,10 +609,10 @@ public class MapActivity extends AppCompatActivity
 
 
     //setroom
-    public String Jsonize(String chat_id1, String chat_id2,String chat_type ) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
+    public String Jsonize(String chat_id1, String chat_id2,String chat_name1,String chat_name2,String chat_type ) // 데이터 받아서 JSON화 하는 함수 Data -> Gson -> json
     {
 
-        String json = new Gson().toJson(new Message(chat_id1,chat_id2,chat_type)); //Data -> Gson -> json
+        String json = new Gson().toJson(new Message(chat_id1,chat_id2,chat_name1,chat_name2,chat_type)); //Data -> Gson -> json
         return json;
 
     }
@@ -677,7 +716,7 @@ public class MapActivity extends AppCompatActivity
             dialog.show();
             TextView msgView = (TextView) dialog.findViewById(android.R.id.message);
 
-            msgView.setTextSize(13);
+            msgView.setTextSize(14);
 
 
 
@@ -721,14 +760,21 @@ public class MapActivity extends AppCompatActivity
           //  LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             //inflater.inflate(R.layout.profile, container, true);
         } else if (id == R.id.stream) {
-            Toast.makeText(getApplicationContext(),"스트리밍",Toast.LENGTH_LONG).show();
+            startActivity(new Intent(Intent.ACTION_VIEW).setData(Uri.parse("https://youtube.com"))
+            .setPackage("com.google.android.youtube"));
+
         } else if (id == R.id.chat) {
             Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
             //Toast.makeText(getApplicationContext(),"채팅",Toast.LENGTH_LONG).show();
-        } else if (id == R.id.etc) {
-            Toast.makeText(getApplicationContext(),"기타",Toast.LENGTH_LONG).show();
+        } else if (id == R.id.logout) {
+            Toast.makeText(getApplicationContext(),"로그아웃 성공",Toast.LENGTH_LONG).show();
+            SharedPreferences pref= getSharedPreferences("userinfo", Activity.MODE_PRIVATE);
+            SharedPreferences.Editor editor = pref.edit();
+            editor.clear();
+            editor.commit();
+            finish();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

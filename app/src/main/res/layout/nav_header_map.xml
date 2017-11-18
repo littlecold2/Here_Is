@@ -10,22 +10,24 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:theme="@style/ThemeOverlay.AppCompat.Dark">
+    android:theme="@style/ThemeOverlay.AppCompat.Dark"
+    android:id="@+id/navi_header">
 
     <ImageView
-        android:id="@+id/imageView"
+        android:id="@+id/naviImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:srcCompat="@drawable/image1" />
 
     <TextView
+        android:id="@+id/naviName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="이름"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/naviIntro"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="자기소개" />
