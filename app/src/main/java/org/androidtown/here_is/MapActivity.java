@@ -714,18 +714,9 @@ public class MapActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.info) {
-            Toast.makeText(getApplicationContext(),"정보",Toast.LENGTH_LONG).show();
-            LayoutInflater inflater=getLayoutInflater();
-            final View profileView= inflater.inflate(R.layout.profile, null);
-            AlertDialog.Builder buider= new AlertDialog.Builder(this); //AlertDialog.Builder 객체 생성
-
-            buider.setTitle("Member Information"); //Dialog 제목
-
-            buider.setIcon(android.R.drawable.ic_menu_add); //제목옆의 아이콘 이미지(원하는 이미지 설정)
-
-            buider.setView(profileView);
-            AlertDialog dialog=buider.create();
-            dialog.show();
+            Intent intent = new Intent(getApplicationContext(), EditProfileActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
 
           //  LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             //inflater.inflate(R.layout.profile, container, true);
@@ -735,7 +726,7 @@ public class MapActivity extends AppCompatActivity
             Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);
-            Toast.makeText(getApplicationContext(),"채팅",Toast.LENGTH_LONG).show();
+            //Toast.makeText(getApplicationContext(),"채팅",Toast.LENGTH_LONG).show();
         } else if (id == R.id.etc) {
             Toast.makeText(getApplicationContext(),"기타",Toast.LENGTH_LONG).show();
         }
