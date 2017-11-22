@@ -36,7 +36,7 @@
                 android:id="@+id/StartSendLocBtn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="서비스 시작\n(위치추적, 서버연결)"
+                android:text="위치 검색"
                 android:textSize="6.5dp"
                 android:layout_weight="0.3"/>
             <Button

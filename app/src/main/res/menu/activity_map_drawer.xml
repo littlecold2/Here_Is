@@ -12,8 +12,22 @@
             android:id="@+id/chat"
             android:title="채팅" />
         <item
+            android:id="@+id/rest"
+            android:title="음식점" />
+        <item
+            android:id="@+id/bank"
+            android:title="은행" />
+        <item
+            android:id="@+id/bus"
+            android:title="버스정류장" />
+        <item
+            android:id="@+id/off"
+            android:title="주변정보 초기화"/>
+        <item
             android:id="@+id/logout"
             android:title="로그아웃" />
+
+
     </group>
 
     <item android:title="Communicate">

@@ -15,11 +15,13 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.hardware.usb.UsbRequest;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,6 +33,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.text.Html;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -49,6 +52,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -57,17 +64,30 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
 import org.androidtown.here_is.ClientService.Mybinder;
+import org.json.JSONObject;
+
+import javax.net.ssl.HttpsURLConnection;
+
 import noman.googleplaces.NRPlaces;
 import noman.googleplaces.PlaceType;
 import noman.googleplaces.PlacesException;
@@ -123,9 +143,10 @@ public class MapActivity extends AppCompatActivity
 //########service ########
 
 //######### 주변 정보 ##########
-
+    private int placechecker = -1;
     private LatLng lastknownlocation;
-
+    private static final int PLACE_PICKER_REQUEST =1; // 위치검색 쓸 때
+    private List<Polyline> L_Poly;
 //######### 주변 정보 ##########
 
     private List<Message> User_loc_List;
@@ -176,6 +197,7 @@ public class MapActivity extends AppCompatActivity
 
         User_loc_List = new ArrayList<>();
         previous_marker = new ArrayList<>();
+        L_Poly = new ArrayList<>();
 
         userinfo = getSharedPreferences("userinfo", Activity.MODE_PRIVATE);
         myID = userinfo.getString("ID","");
@@ -290,6 +312,7 @@ public class MapActivity extends AppCompatActivity
                     map.clear();
                    // showPlaceInformation(lastknownlocation);
                     pickMark(lastknownlocation,myName,"서버 연결 안됨");
+                    map.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(CS.getMyLocation().getLatitude(), CS.getMyLocation().getLongitude())));
                 }
 
 
@@ -406,9 +429,9 @@ public class MapActivity extends AppCompatActivity
 
 
         pickMark( new LatLng( 37.628, 126.825),"안녕하세요.","GPS를 켜주세요~");
-        map.animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng( 37.628, 126.825)).zoom(20).tilt(30).build()));
+       // map.animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng( 37.628, 126.825)).zoom(20).tilt(30).build()));
         map.moveCamera(CameraUpdateFactory.newLatLng( new LatLng( 37.628, 126.825)));
-        map.animateCamera(CameraUpdateFactory.zoomTo(20));
+        map.animateCamera(CameraUpdateFactory.zoomTo(16));
 
        // map.setPadding(300,300,300,300); // left, top, right, bottom //버튼이나 그런거 위치 한정?
         map.getUiSettings().setZoomControlsEnabled(true); // 줌 버튼 가능하게
@@ -418,13 +441,13 @@ public class MapActivity extends AppCompatActivity
             @Override //마커 클릭시
             public boolean onMarkerClick(final Marker marker) {
                 //################ Profile View ################
-                if(((Message)marker.getTag())==null)
+                if((marker.getTag())==null)
                     Toast.makeText(getApplicationContext(), "자신의 마커 입니다.", Toast.LENGTH_SHORT).show();
-                else if(((Message)marker.getTag()).getId().equals(myID))
+                else if(marker.getTag().getClass().equals(Message.class) &&((Message)marker.getTag()).getId().equals(myID))
                 {
                     Toast.makeText(getApplicationContext(), "자신의 마커 입니다.", Toast.LENGTH_SHORT).show();
                 }
-                else {
+                else if(marker.getTag().getClass().equals(Message.class)){
                     inflater = getLayoutInflater();
                     profileView = inflater.inflate(R.layout.profile, null);
                     profileImage = (ImageView) profileView.findViewById(R.id.profileImage_dialog);
@@ -441,11 +464,11 @@ public class MapActivity extends AppCompatActivity
                     AlertDialog.Builder buider = new AlertDialog.Builder(MapActivity.this); //AlertDialog.Builder 객체 생성
 
                     buider.setTitle("사용자 정보"); //Dialog 제목
-                    buider.setIcon(android.R.drawable.ic_menu_add); //제목옆의 아이콘 이미지(원하는 이미지 설정)
+                  //  buider.setIcon(android.R.drawable.ic_menu_add); //제목옆의 아이콘 이미지(원하는 이미지 설정)
 
                     profileImage.setImageResource(resID);
-                    nicknameView.setText(targetID);
-                    introView.setText(((Message) marker.getTag()).getName());
+                    nicknameView.setText(((Message) marker.getTag()).getName());
+                    introView.setText(((Message) marker.getTag()).getIntro());
                     buider.setView(profileView);
 
                     final AlertDialog dialog = buider.create();
@@ -494,6 +517,56 @@ public class MapActivity extends AppCompatActivity
 
 //
                 }
+
+                else if(marker.getTag().getClass().equals(PlaceData.class)) {
+                    inflater = getLayoutInflater();
+                    View loc_profileView = inflater.inflate(R.layout.location_profile, null);
+                    ImageView loc_profileImage = (ImageView) loc_profileView.findViewById(R.id.loc_image);
+                    TextView nameView = (TextView) loc_profileView.findViewById(R.id.loc_name);
+                    TextView addressView = (TextView) loc_profileView.findViewById((R.id.loc_address));
+                    Button Btn_find_loc = (Button) loc_profileView.findViewById(R.id.find_loc);
+                    Button etc = (Button) loc_profileView.findViewById(R.id.etcetc);
+                    // 채팅버튼 누를 때
+
+                    String resName = "@drawable/rest";
+                    int resID = getResources().getIdentifier(resName, "drawable", getApplicationContext().getPackageName());
+
+                    AlertDialog.Builder buider = new AlertDialog.Builder(MapActivity.this); //AlertDialog.Builder 객체 생성
+
+                    buider.setTitle("위치 정보"); //Dialog 제목
+                  // buider.setIcon(android.R.drawable.ic_menu); //제목옆의 아이콘 이미지(원하는 이미지 설정)
+
+                    loc_profileImage.setImageResource(resID);
+                    nameView.setText(((PlaceData) marker.getTag()).getName());
+                    addressView.setText(((PlaceData) marker.getTag()).getAddress());
+                    buider.setView(loc_profileView);
+
+                    final AlertDialog dialog = buider.create();
+                    dialog.show();
+                    Btn_find_loc.setOnClickListener(new Button.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+
+                            for (Polyline pl : L_Poly) {
+                                pl.remove();
+                            }
+                            L_Poly.clear();
+                                String url = getUrl(lastknownlocation,((PlaceData)marker.getTag()).getLocation() ); // 마커 위치정보 넘겨줘서 맞는 url형식 만듬
+                                fetchUrl fUrl = new fetchUrl(); // fetch할 클래스 생성
+                                fUrl.execute(url); // url fetch
+                                dialog.cancel();
+                            // 길찾기ㄱ
+                        }
+                    });
+                    //################ Profile View ################
+                    etc.setOnClickListener(new Button.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            dialog.cancel();
+                        }
+                    });
+                }
+
                 // 토스트나 알럿 메세지...
                 return false;
             }
@@ -508,41 +581,47 @@ public class MapActivity extends AppCompatActivity
 
         Btn_startSendloc.setOnClickListener(new Button.OnClickListener()
         { @Override
-        public void onClick(View view)
-        {
+        public void onClick(View view) {
 
-            if(!isService ) {
-                    Intent intent = new Intent(MapActivity.this, ClientService.class);
-                    bindService(intent, conn, Context.BIND_AUTO_CREATE);
-                    Toast.makeText(getApplicationContext(), "Service 시작 ", Toast.LENGTH_SHORT).show();
+            if (CS.get_key_location_ok()) {
+                PlacePicker.IntentBuilder intentBuilder = new PlacePicker.IntentBuilder();
+                intentBuilder.setLatLngBounds(new LatLngBounds(new LatLng(lastknownlocation.latitude - 0.01, lastknownlocation.longitude - 0.01), new LatLng(lastknownlocation.latitude + 0.01, lastknownlocation.longitude + 0.01)));
+                Intent intent = null;
+                try {
+                    intent = intentBuilder.build(MapActivity.this);
+                } catch (GooglePlayServicesRepairableException e) {
+                    e.printStackTrace();
+                } catch (GooglePlayServicesNotAvailableException e) {
+                    e.printStackTrace();
+                }
+                startActivityForResult(intent, PLACE_PICKER_REQUEST);
             }
             else
             {
-                Toast.makeText(getApplicationContext(), "Service 켜있음", Toast.LENGTH_SHORT).show();
-            }
+                Toast.makeText(getApplicationContext(), "위치 확인중...", Toast.LENGTH_SHORT).show();
         }
+        }
+
         });
 
         Btn_stopSendloc.setOnClickListener(new Button.OnClickListener()
         { @Override
         public void onClick(View view)
         {
-           showdialog(myID,"min",0);
+
+
+            showdialog(myID,"min",0);
         }
         });
         Btn_MyLoction.setOnClickListener(new Button.OnClickListener()
         { @Override
         public void onClick(View view)
         { //위치검색 (PlacePicker)
-           // MarkerPoints.clear(); // 마커 저장 해논 리스트 클리어
-            //테스트용
-//            Intent sintent = new Intent(getApplicationContext(), ChattingActivity.class);
-//            sintent.putExtra("targetID",Build.ID);
-//            startActivity(sintent);
+
 
             if(CS.get_key_location_ok()) {
                 map.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(CS.getMyLocation().getLatitude(), CS.getMyLocation().getLongitude())));
-                showPlaceInformation(lastknownlocation);
+                //showPlaceInformation(lastknownlocation);
             }
             else
                 Toast.makeText(getApplicationContext(), "위치 확인중...", Toast.LENGTH_SHORT).show();
@@ -551,7 +630,41 @@ public class MapActivity extends AppCompatActivity
 
 
     } // onMapReady
+    /////////////////////// Google place PlacePicker
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) // PlacePicker 끝날 때 정보 받아오기
+    {
+        if(requestCode == PLACE_PICKER_REQUEST && resultCode == Activity.RESULT_OK)
+        {
+            final Place place = PlacePicker.getPlace(this, data); // 정보 받아오기
+            final CharSequence name = place.getName();
+            final CharSequence address = place.getAddress();
 
+
+            String attributions = (String) place.getAttributions();
+            if (attributions == null) {
+                attributions = "";
+            }
+
+            //pickMark(place.getLatLng(),name.toString(),address.toString()); // 받아온 정보에서 위치, 이름 , 주소 받아와서 마크 찍기
+
+            MarkerOptions markerOptions = new MarkerOptions();
+
+
+            markerOptions.position(place.getLatLng());
+            markerOptions.title(place.getName().toString());
+            markerOptions.snippet(place.getAddress().toString());
+
+            Marker item = map.addMarker(markerOptions);
+            item.setTag(new PlaceData(place.getName().toString(),place.getAddress().toString(),place.getLatLng()));
+            previous_marker.add(item);
+
+            map.moveCamera(CameraUpdateFactory.newLatLng(place.getLatLng()));
+            map.animateCamera(CameraUpdateFactory.zoomTo(17));
+        }
+        else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    } // 구글 플레이스 정보 가져오기
 
 
     private void pickMark(final LatLng LL,String name, String intro,int image_index,Message data) // 위도 경도, 이름 주소 받아서 마커 찍는 함수
@@ -601,7 +714,7 @@ public class MapActivity extends AppCompatActivity
         mk = map.addMarker(markerOptions);
         mk.showInfoWindow();
 //        map.addMarker(markerOptions).showInfoWindow(); // 맵에 추가
-        L_Marker_userlist.add(mk); // 위치정보 마커 리스트에 추가
+        previous_marker.add(mk); // 위치정보 마커 리스트에 추가
     } // pickMark
 
 
@@ -775,7 +888,33 @@ public class MapActivity extends AppCompatActivity
             editor.clear();
             editor.commit();
             finish();
+        }else if (id == R.id.rest) {
+        placechecker = 0;
+        if(CS.get_key_server_ok()) {
+            showPlaceInformation(lastknownlocation,placechecker);
         }
+    }else if(id == R.id.bank) {
+        placechecker = 1;
+        if(CS.get_key_server_ok()) {
+            showPlaceInformation(lastknownlocation,placechecker);
+        }
+    }else if(id == R.id.bus){
+        placechecker = 2;
+        if(CS.get_key_server_ok()) {
+            showPlaceInformation(lastknownlocation,placechecker);
+        }
+    }else if(id == R.id.off){
+        placechecker = -1;
+            for (Marker mk : previous_marker) {
+                mk.remove();
+            }
+            for (Polyline pl : L_Poly) {
+                pl.remove();
+            }
+            L_Poly.clear();
+           previous_marker.clear();
+        //map.clear();
+    }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
@@ -801,11 +940,32 @@ public class MapActivity extends AppCompatActivity
                     LatLng latLng = new LatLng(place.getLatitude(), place.getLongitude());
 
                     MarkerOptions markerOptions = new MarkerOptions();
+                    switch(placechecker)
+                    {
+                        case 0://식당
+                        {
+                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.rest));
+                            break;
+                        }
+                        case 1: // 은행
+                        {
+                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.bank));
+                            break;
+                        }
+                        case 2: // 버스정류장
+                        {
+                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.bus));
+                            break;
+                        }
+                    }
+
                     markerOptions.position(latLng);
                     markerOptions.title(place.getName());
                     markerOptions.snippet(place.getVicinity());
+                   // Log.d("place","icon: "+place.getIcon()+" type:"+place.getTypes());
+
                     Marker item = map.addMarker(markerOptions);
-                    item.setTag("place");
+                    item.setTag(new PlaceData(place.getName(),place.getVicinity(),new LatLng(place.getLatitude(),place.getLongitude())));
                     previous_marker.add(item);
 
                 }
@@ -824,23 +984,232 @@ public class MapActivity extends AppCompatActivity
 
     }
 
-    public void showPlaceInformation(LatLng location)
-    {
-       // map.clear();//지도 지우기
+    public void showPlaceInformation(LatLng location,int placetype) {
+        // map.clear();//지도 지우기
 
-        if (previous_marker != null)
+        if (previous_marker != null) {
+            for (Marker mk : previous_marker) {
+                mk.remove();
+            }
             previous_marker.clear();//마커지우기
+        }
+        switch (placetype) {
+            case 0: { // 음식점
+                new NRPlaces.Builder()
+                        .listener(MapActivity.this)
+                        .key("AIzaSyDdwDyx5xMSgY_b7IPNnCrB9qWLMQ-EDgM")
+                        .latlng(location.latitude, location.longitude)
+                        .radius(500)
+                        .type(PlaceType.RESTAURANT)
+                        .build()
+                        .execute();
+                break;
 
-        new NRPlaces.Builder()
-                .listener(MapActivity.this)
-                .key("AIzaSyDdwDyx5xMSgY_b7IPNnCrB9qWLMQ-EDgM")
-                .latlng(location.latitude, location.longitude)// location 파라미터의 위치로부터
-                .radius(500)  // 1000M 이내에 있는
-                .type(PlaceType.RESTAURANT)  // 음식점 추적
-                .build()
-                .execute();
+            }
+            case 1: { // 은행
+                new NRPlaces.Builder()
+                        .listener(MapActivity.this)
+                        .key("AIzaSyDdwDyx5xMSgY_b7IPNnCrB9qWLMQ-EDgM")
+                        .latlng(location.latitude, location.longitude)
+                        .radius(500)
+                        .type(PlaceType.BANK)
+                        .build()
+                        .execute();
+                break;
+            }
+            case 2: { // 버스정류장
+                new NRPlaces.Builder()
+                        .listener(MapActivity.this)
+                        .key("AIzaSyDdwDyx5xMSgY_b7IPNnCrB9qWLMQ-EDgM")
+                        .latlng(location.latitude, location.longitude)
+                        .radius(500)
+                        .type(PlaceType.BUS_STATION)
+                        .build()
+                        .execute();
+                break;
+            }
+        }
+    }
+    private String getUrl(LatLng origin, LatLng dest) // 위치 두개 받아서 길찾기 URL 형식으로 바꿈  // 키 필요   Google Direction APi 이용
+    {
+        String url = "";
+        String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
+        String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
+//        if()
+        Log.d("l_d",Long.toString(System.currentTimeMillis()));
+//        long now = System.currentTimeMillis();
+//        Date date = new Date(now);
+//        SimpleDateFormat a = new SimpleDateFormat("hh a, zzzz");
+//        Log.d("l_d",a.format(date));
+
+        //derection
+        url = "https://maps.googleapis.com/maps/api/directions/json?" +  str_origin +"&"+str_dest +"&mode=transit"+"&alternatives=true"+  "&key=AIzaSyAKq5CUx3CsSpnWt-Ls7P_SPzCtz6FpVRE ";
+        return url;
     }
 
+    private class fetchUrl extends AsyncTask<String, Void, String> // AsyncTsk는 일종의 쓰레드 doInBackground 에서 PostExecute로 return값 넘겨줄수 있고, Post Execute는 ui컨트롤 부분 가능 Google Direction APi 이용
+    {
+        protected String doInBackground(String... url)
+        {
+            String data="";
+            try {
+                data = downloadUrl(url[0]); // URL 보내서 정보 받기
+            } catch (Exception e) {
+                Log.d("Background Task", e.toString());
+            }
+            return data;
+
+        }
+        protected void onPostExecute(String result){
+            super.onPostExecute(result);
+//            Intent MyIntent = new Intent(getApplicationContext(),Urltextview.class);
+//
+//            MyIntent.putExtra("url",result+ "\n\n\n************\n\n\n");
+//            startActivity(MyIntent);
+
+
+            ParserTask parserTask = new ParserTask();
+            parserTask.execute(result);
+
+        }
+
+
+    }// fetchUrl
+
+    private String downloadUrl(String strUrl) throws IOException // 만든 URL 보내서 관련 정보 받아오기
+    {
+        String data = "";
+        InputStream iStream = null;
+        HttpsURLConnection urlConnection = null;
+        Log.d("Url",strUrl);
+        try{
+            URL url = new URL(strUrl);
+
+            // url 만들기
+            urlConnection = (HttpsURLConnection) url.openConnection();
+
+            // 연결
+            urlConnection.connect();
+
+            // 데이터 읽기
+            iStream = urlConnection.getInputStream();
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(iStream));
+//            BufferedReader br = new BufferedReader(new InputStreamReader(iStream, StandardCharsets.UTF_8));
+
+            StringBuffer sb = new StringBuffer();
+
+            String line = "";
+            while((line = br.readLine()) != null) // 다 읽을 때 까지 버퍼에 계속 넣기
+            {
+                sb.append(line);
+            }
+
+            data = sb.toString(); // 버퍼에 쌓인 내용 저장
+            Log.d("downloadUrl", data.toString());
+            br.close();
+
+        }
+        catch (Exception e)
+        {
+            Log.d("Urlfail", "urldownloadfail");
+        }
+        finally
+        {
+            Log.d("Urlend", "end");
+            iStream.close();;
+            urlConnection.disconnect();
+        }
+        return data;
+    }
+
+    private class ParserTask extends AsyncTask<String,Integer,List<List<HashMap<String,String>>>> // 맵에 길찾기 한 루트를 Polyline을 이용해 그려주고 소요시간, 거리 가져오는 함수 DataParser클래스를 이용해 JSON파싱한 내용을 이용한다. Google Direction APi 이용
+    {
+
+        @Override
+        protected List<List<HashMap<String, String>>> doInBackground(String... jsonData) {
+//루트 관련 정보 저장
+            JSONObject jObject_route;
+            List<List<HashMap<String,String >>> routes = null;
+//            List<List<String>> DD;
+
+            try {
+                jObject_route = new JSONObject(jsonData[0]);
+                //jObject_DD = new JSONObject((jsonData[1]));
+
+                Log.d("ParserTask",jsonData[0].toString());
+                DataParser parser = new DataParser();
+                Log.d("ParserTask", parser.toString());
+
+                // Starts parsing data
+                routes = parser.parse(jObject_route);
+
+                Log.d("ParserTask","Executing routes");
+                Log.d("ParserTask",routes.toString());
+
+            } catch (Exception e) {
+                Log.d("ParserTask",e.toString());
+                e.printStackTrace();
+            }
+            return routes;
+        }// doinback
+
+        // Executes in UI thread, after the parsing process
+        @Override
+        protected void onPostExecute(List<List<HashMap<String, String>>> result) {
+            ArrayList<LatLng> points;
+            PolylineOptions lineOptions = null;
+
+            // Traversing through all the routes
+
+            for (int i = 0; i < result.size(); i++) {
+                points = new ArrayList<>();
+                lineOptions = new PolylineOptions();
+
+                // Fetching i-th route
+                List<HashMap<String, String>> path = result.get(i);
+
+
+                Log.d("d_parsing", "path size: " + Integer.toString(path.size()));
+                // Fetching all the points in i-th route
+
+                for (int j = 0; j < path.size(); j++) { // 패스 수 많금 포문
+                    HashMap<String, String> point = path.get(j);
+
+                    if(point.containsKey("Distance")||point.containsKey("Duration")) { // 거리나 소요시간 키를 가지고 있으면
+                        String Dis = point.get("Distance"); // 그 거리 정보 가져온다.
+                        String Dur = point.get("Duration"); // 그 소요시간 정보 가져온다.
+                        tv.append(Dis + " , " + Dur + "\n"); // 텍스트 뷰에 그 정보들 뿌려준다.
+                    }
+                    else{
+                        double lat = Double.parseDouble(point.get("lat"));
+                        double lng = Double.parseDouble(point.get("lng"));
+                        LatLng position = new LatLng(lat, lng);
+//                        Log.d("d_parsing", "lat: " + Double.toString(lat) + "  lng:" + Double.toString(lng));
+                        points.add(position);
+                    }
+
+                } // for
+                // Adding all the points in the route to LineOptions
+//                    lineOptions.addAll(points);
+                lineOptions.addAll(points);
+                lineOptions.width(10);
+                lineOptions.color(Color.rgb(33, 142, 233));//8EC7fF
+
+                Log.d("onPostExecute","onPostExecute lineoptions decoded");
+
+            }
+            // Drawing polyline in the Google Map for the i-th route
+            if(lineOptions != null) {
+                L_Poly.add(map.addPolyline(lineOptions));
+
+            }
+            else {
+                Log.d("onPostExecute","without Polylines drawn");
+            }
+        }
+
+    }// ParserTask
 
 
 }
