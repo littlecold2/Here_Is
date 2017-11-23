@@ -103,11 +103,28 @@ public class EditProfileActivity extends AppCompatActivity {
                 url = URL.getText().toString();
             }
 
-            Intent intent = new Intent(getApplicationContext(), SignupProfileActivity.class);
+            Intent intent = new Intent(getApplicationContext(), EditIndexActivity.class);
             UserData data = new UserData(id, pw, name, info, url);
             intent.putExtra(KEY_USER_DATA2, data);
             startActivityForResult(intent, REQUEST_CODE_PROFILE2);
         }
+    }
+
+    protected void Edit_saveUserinfo(UserData userData) {
+        SharedPreferences userinfo = getSharedPreferences("userinfo", Activity.MODE_PRIVATE);
+        SharedPreferences.Editor editor = userinfo.edit();
+
+        editor.clear();
+
+        editor.putString("STATUS", "Login_OK");
+        editor.putString("ID", userData.getID());
+        editor.putString("PW", userData.getPW());
+        editor.putString("NAME", userData.getNAME());
+        editor.putString("INFO", userData.getINFO());
+        editor.putString("URL", userData.getURL());
+        editor.putString("INDEX", userData.getINDEX());
+
+        editor.commit();
     }
 
     @Override
@@ -117,14 +134,36 @@ public class EditProfileActivity extends AppCompatActivity {
             //Toast.makeText(getApplicationContext(), "onActivityResult 메소드호출됨. 요청코드: " + requestCode+ ", 결과코드: " + resultCode, Toast.LENGTH_LONG).show();
             if (resultCode== RESULT_OK) {
                 String result = data.getExtras().getString("result");
+                String index = data.getExtras().getString("index");
+
                 //Toast.makeText(getApplicationContext(), "응답으로전달된 result : " + result, Toast.LENGTH_LONG).show();
-                if (result.equals("diff_id")) {
-                    Toast.makeText(getApplicationContext(), "이미 존재하는 아이디 입니다.", Toast.LENGTH_LONG).show();
-                } else if (result.equals("signup_ok")) {
-                    Toast.makeText(getApplicationContext(), "회원가입 완료.", Toast.LENGTH_LONG).show();
+                if (result.equals("no_id")) {
+                    Toast.makeText(getApplicationContext(), "로그아웃 후 다시 시도해주세요.", Toast.LENGTH_LONG).show();
+                } else if (result.equals("edit_ok")) {
+                    UserData userInfo;
+                    if(URL.getText().toString().equals("")) {
+                        userInfo = new UserData(ID.getText().toString(),
+                                PW.getText().toString(),
+                                NAME.getText().toString(),
+                                INFO.getText().toString(),
+                                URL.getText().toString(),
+                                index);
+                    }
+                    else {
+                        userInfo = new UserData(ID.getText().toString(),
+                                PW.getText().toString(),
+                                NAME.getText().toString(),
+                                INFO.getText().toString(),
+                                "NO URL",
+                                index);
+                    }
+
+                    Edit_saveUserinfo(userInfo);
+
+                    Toast.makeText(getApplicationContext(), "정보수정 완료.", Toast.LENGTH_LONG).show();
                     finish();
-                } else if (result.equals("signup_fail")) {
-                    Toast.makeText(getApplicationContext(), "회원가입 실패. 다시한번 시도해주세요", Toast.LENGTH_LONG).show();
+                } else if (result.equals("edit_fail")) {
+                    Toast.makeText(getApplicationContext(), "정보수정 실패. 다시 시도해주세요", Toast.LENGTH_LONG).show();
                 }
             }
         }

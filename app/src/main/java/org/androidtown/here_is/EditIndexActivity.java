@@ -3,10 +3,15 @@ package org.androidtown.here_is;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.concurrent.ExecutionException;
 
@@ -35,6 +40,9 @@ public class EditIndexActivity extends AppCompatActivity {
         img7 = (ImageButton) findViewById(R.id.img_7e);
         img8 = (ImageButton) findViewById(R.id.img_8e);
         img9 = (ImageButton) findViewById(R.id.img_9e);
+
+        Intent intent = getIntent();
+        processIntent(intent);
     }
 
     public void img_1e_Clicked(View v) { index = "1"; }
@@ -58,7 +66,7 @@ public class EditIndexActivity extends AppCompatActivity {
         }
     }
 
-    public void btn_edit_profile_Clicked(View v) throws ExecutionException, InterruptedException {
+    public void btn_edit_profile_Clicked(View v) throws ExecutionException, InterruptedException, JSONException {
         if(index.equals("")) {
             Toast.makeText(getApplicationContext(), "이미지를 선택해 주세요.", Toast.LENGTH_LONG).show();
         }
@@ -75,8 +83,16 @@ public class EditIndexActivity extends AppCompatActivity {
 
             result = new ServerConn(this).execute(type, id, pw, name, info, url, index).get();
 
+            Log.d("server", result);
+
+            JSONObject jsondata =  new JSONObject(result);
+            JSONArray jsondata2 = jsondata.getJSONArray("editdata");
+            JSONObject jsondata3 = jsondata2.getJSONObject(0);
+
             Intent intent = new Intent();
-            intent.putExtra("result", result);
+            intent.putExtra("result", jsondata3.getString("status"));
+            intent.putExtra("index", index);
+
             setResult(RESULT_OK, intent);
             finish();
         }

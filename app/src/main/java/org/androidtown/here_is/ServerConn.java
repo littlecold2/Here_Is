@@ -67,7 +67,7 @@ public class ServerConn extends AsyncTask<String, Void, String> {
         }
 
         if (type.equals("signup")) {
-            String signup_url = "http://52.78.20.5/here/signup.php";
+            String signup_url = "http://52.78.20.5/here/signup_json.php";
             try {
                 String id = params[1];
                 String pw = params[2];
@@ -112,7 +112,7 @@ public class ServerConn extends AsyncTask<String, Void, String> {
         }
 
         if (type.equals("edit_profile")) {
-            String signup_url = "http://52.78.20.5/here/edit_profile.php";
+            String signup_url = "http://52.78.20.5/here/edit_profile_json.php";
             try {
                 String id = params[1];
                 String pw = params[2];

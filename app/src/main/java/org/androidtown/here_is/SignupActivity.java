@@ -114,7 +114,9 @@ public class SignupActivity extends AppCompatActivity {
             if (resultCode== RESULT_OK) {
                 String result = data.getExtras().getString("result");
                 //Toast.makeText(getApplicationContext(), "응답으로전달된 result : " + result, Toast.LENGTH_LONG).show();
-                if (result.equals("diff_id")) {
+
+
+                    if (result.equals("diff_id")) {
                     Toast.makeText(getApplicationContext(), "이미 존재하는 아이디 입니다.", Toast.LENGTH_LONG).show();
                 } else if (result.equals("signup_ok")) {
                     Toast.makeText(getApplicationContext(), "회원가입 완료.", Toast.LENGTH_LONG).show();

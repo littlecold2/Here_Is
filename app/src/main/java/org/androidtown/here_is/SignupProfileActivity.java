@@ -3,10 +3,15 @@ package org.androidtown.here_is;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.concurrent.ExecutionException;
 
@@ -78,7 +83,7 @@ public class SignupProfileActivity extends AppCompatActivity {
             //        + "\ninfo : " + data.getINFO() + "\nurl : " + data.getURL(), Toast.LENGTH_LONG).show();
         }
     }
-    public void btn_profile_signup_Clicked(View v) throws ExecutionException, InterruptedException {
+    public void btn_profile_signup_Clicked(View v) throws ExecutionException, InterruptedException, JSONException {
         if(index.equals("")) {
             Toast.makeText(getApplicationContext(), "이미지를 선택해 주세요.", Toast.LENGTH_LONG).show();
         }
@@ -101,6 +106,13 @@ public class SignupProfileActivity extends AppCompatActivity {
 
             result = new ServerConn(this).execute(type, id, pw, name, info, url, index).get();
             //Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
+            Log.d("kkkk", result);
+
+            JSONObject jsondata =  new JSONObject(result);
+            JSONArray jsondata2 = jsondata.getJSONArray("signupdata");
+            JSONObject jsondata3 = jsondata2.getJSONObject(0);
+
+            result = jsondata3.getString("status").toString();
 
             Intent intent = new Intent();
             intent.putExtra("result", result);

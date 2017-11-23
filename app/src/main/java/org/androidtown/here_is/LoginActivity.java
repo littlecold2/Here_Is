@@ -65,7 +65,7 @@ public class LoginActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "로그인 성공", Toast.LENGTH_LONG).show();
 
                 UserData userInfo = new UserData(jsondata3.getString("id"),
-                        jsondata3.getString("pw"),
+                        PW.getText().toString(),
                         jsondata3.getString("name"),
                         jsondata3.getString("info"),
                         jsondata3.getString("url"),
