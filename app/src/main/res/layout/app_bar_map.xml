@@ -24,27 +24,37 @@
         android:id="@+id/include"
         layout="@layout/content_map" />
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/menu_fab"
-        android:layout_width="35dp"
-        android:layout_height="35dp"
+    <!--<android.support.design.widget.FloatingActionButton-->
+        <!--android:id="@+id/menu_fab"-->
+        <!--android:layout_width="35dp"-->
+        <!--android:layout_height="35dp"-->
 
-        android:layout_marginTop="10dp"
-        android:layout_marginLeft="5dp"
-        app:layout_anchor="@+id/include"
-        app:layout_anchorGravity="left|top"
-        app:fabSize="mini"
-        app:srcCompat="@android:drawable/ic_dialog_info" />
+        <!--android:layout_marginTop="10dp"-->
+        <!--android:layout_marginLeft="5dp"-->
+        <!--app:layout_anchor="@+id/include"-->
+        <!--app:layout_anchorGravity="left|top"-->
+        <!--app:fabSize="mini"-->
+        <!--app:srcCompat="@android:drawable/ic_dialog_info" />-->
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
 
-        android:layout_marginBottom="50dp"
+        android:layout_marginBottom="70dp"
         android:layout_marginRight="10dp"
         app:layout_anchor="@+id/include"
         app:layout_anchorGravity="right|bottom"
         app:srcCompat="@android:drawable/ic_dialog_email" />
+
+    <com.roughike.bottombar.BottomBar
+        android:id="@+id/bottomBar"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:background="#BB000000"
+        app:bb_tabXmlResource="@xml/bottom_bar"
+        app:layout_anchor="@+id/include"
+        app:layout_anchorGravity="bottom|center" />
 
 </android.support.design.widget.CoordinatorLayout>
