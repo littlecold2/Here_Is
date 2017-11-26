@@ -109,6 +109,7 @@ public class MapActivity extends AppCompatActivity
     private Gson gson;
     private boolean dialog_key =false;
 
+
     //################ Profile View ################
     private LayoutInflater inflater;
     private View profileView;
@@ -350,12 +351,13 @@ public class MapActivity extends AppCompatActivity
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("채팅 요청");
-        builder.setMessage(name + "님이 채팅을 요청 하셨습니다.\n 채팅을 수락 하시겠습니까?");
+        builder.setMessage(name + "님이 채팅을 요청 하셨습니다.\n\n 채팅을 수락 하시겠습니까?");
+
 
 
 
         builder.setIcon(resID);
-        //builder.setCancelable(false);
+        builder.setCancelable(false);
 
         builder.setPositiveButton("네", new DialogInterface.OnClickListener() { // 예버튼
             public void onClick(DialogInterface dialog, int whichButton) {
@@ -372,7 +374,9 @@ public class MapActivity extends AppCompatActivity
                     }).start();
                 }
                 dialog_key=false;
+
                 dialog.dismiss();
+
 
             }
         }).setNegativeButton("아니오", new DialogInterface.OnClickListener() { // 아니오버튼
@@ -387,7 +391,10 @@ public class MapActivity extends AppCompatActivity
 
 
         AlertDialog dialog = builder.create();// 대화상자객체생성후보여주기
+
         dialog.show();
+        TextView msgView = (TextView) dialog.findViewById(android.R.id.message);
+        msgView.setTextSize(14);
 
 
        // if(!isFinishing())
@@ -458,7 +465,11 @@ public class MapActivity extends AppCompatActivity
                     Btn_Streaming = (Button) profileView.findViewById(R.id.chatStreaming);
                     // 채팅버튼 누를 때
 
-                    String resName = "@drawable/profile" + ((Message) marker.getTag()).getImage();
+                    final int image= ((Message) marker.getTag()).getImage();
+                    final String name = ((Message) marker.getTag()).getName();
+                    String intro = ((Message) marker.getTag()).getIntro();
+
+                    String resName = "@drawable/profile" + image;
                     int resID = getResources().getIdentifier(resName, "drawable", getApplicationContext().getPackageName());
 
                     AlertDialog.Builder buider = new AlertDialog.Builder(MapActivity.this); //AlertDialog.Builder 객체 생성
@@ -467,8 +478,8 @@ public class MapActivity extends AppCompatActivity
                   //  buider.setIcon(android.R.drawable.ic_menu_add); //제목옆의 아이콘 이미지(원하는 이미지 설정)
 
                     profileImage.setImageResource(resID);
-                    nicknameView.setText(((Message) marker.getTag()).getName());
-                    introView.setText(((Message) marker.getTag()).getIntro());
+                    nicknameView.setText(name);
+                    introView.setText(intro);
                     buider.setView(profileView);
 
                     final AlertDialog dialog = buider.create();
@@ -486,6 +497,8 @@ public class MapActivity extends AppCompatActivity
                                         CS.sendMessage(Jsonize(myID, targetID,myName,myImage_index, "room_req"));
                                     }
                                 }).start();
+                                CS.setChat_image_index(image);
+                                CS.setChat_name( name);
                                 Toast.makeText(getApplicationContext(), "채팅 요청을 보냈습니다.", Toast.LENGTH_LONG).show();
                                 dialog.cancel();
                             }
@@ -528,7 +541,7 @@ public class MapActivity extends AppCompatActivity
                     Button etc = (Button) loc_profileView.findViewById(R.id.etcetc);
                     // 채팅버튼 누를 때
 
-                    String resName = "@drawable/rest";
+                    String resName = "@drawable/marker_rest_128";
                     int resID = getResources().getIdentifier(resName, "drawable", getApplicationContext().getPackageName());
 
                     AlertDialog.Builder buider = new AlertDialog.Builder(MapActivity.this); //AlertDialog.Builder 객체 생성
@@ -678,7 +691,7 @@ public class MapActivity extends AppCompatActivity
         markerOptions.draggable(true); // 드래그 가능하도록
         markerOptions.flat(true);
 
-        String resName = "@drawable/profile" + image_index;
+        String resName = "@drawable/marker_profile" + image_index;
         int resID = getResources().getIdentifier(resName, "drawable", this.getPackageName());
 
         markerOptions.icon(BitmapDescriptorFactory.fromResource(resID));
@@ -703,7 +716,7 @@ public class MapActivity extends AppCompatActivity
         markerOptions.draggable(true); // 드래그 가능하도록
         markerOptions.flat(true);
 
-        String resName = "@drawable/profile" + myImage_index;
+        String resName = "@drawable/marker_profile" + myImage_index;
         int resID = getResources().getIdentifier(resName, "drawable", this.getPackageName());
 
         markerOptions.icon(BitmapDescriptorFactory.fromResource(resID));
@@ -714,7 +727,7 @@ public class MapActivity extends AppCompatActivity
         mk = map.addMarker(markerOptions);
         mk.showInfoWindow();
 //        map.addMarker(markerOptions).showInfoWindow(); // 맵에 추가
-        previous_marker.add(mk); // 위치정보 마커 리스트에 추가
+        L_Marker_userlist.add(mk); // 위치정보 마커 리스트에 추가
     } // pickMark
 
 
@@ -944,17 +957,18 @@ public class MapActivity extends AppCompatActivity
                     {
                         case 0://식당
                         {
-                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.rest));
+                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_rest));
                             break;
                         }
-                        case 1: // 은행
+                        case 1: // 까페
                         {
-                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.bank));
+
+                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_cafe));
                             break;
                         }
                         case 2: // 버스정류장
                         {
-                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.bus));
+                            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_bus));
                             break;
                         }
                     }
@@ -962,7 +976,7 @@ public class MapActivity extends AppCompatActivity
                     markerOptions.position(latLng);
                     markerOptions.title(place.getName());
                     markerOptions.snippet(place.getVicinity());
-                   // Log.d("place","icon: "+place.getIcon()+" type:"+place.getTypes());
+                    //Log.d("place","icon: "+place.getIcon()+" type:"+place.getTypes().toString());
 
                     Marker item = map.addMarker(markerOptions);
                     item.setTag(new PlaceData(place.getName(),place.getVicinity(),new LatLng(place.getLatitude(),place.getLongitude())));
@@ -1012,7 +1026,7 @@ public class MapActivity extends AppCompatActivity
                         .key("AIzaSyDdwDyx5xMSgY_b7IPNnCrB9qWLMQ-EDgM")
                         .latlng(location.latitude, location.longitude)
                         .radius(500)
-                        .type(PlaceType.BANK)
+                        .type(PlaceType.CAFE)
                         .build()
                         .execute();
                 break;

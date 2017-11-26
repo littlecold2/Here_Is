@@ -16,7 +16,7 @@
             android:title="음식점" />
         <item
             android:id="@+id/bank"
-            android:title="은행" />
+            android:title="까페" />
         <item
             android:id="@+id/bus"
             android:title="버스정류장" />

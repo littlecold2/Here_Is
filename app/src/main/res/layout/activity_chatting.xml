@@ -16,7 +16,7 @@
             android:id="@+id/profileImg"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:src="@drawable/image1"
+            android:src="@drawable/profile1"
             android:layout_weight="2"/>
         <TextView
             android:id="@+id/idTextView"

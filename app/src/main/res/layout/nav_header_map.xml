@@ -15,12 +15,15 @@
 
     <ImageView
         android:id="@+id/naviImage"
+        android:layout_weight="11"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:srcCompat="@drawable/image1" />
+
+        app:srcCompat="@drawable/profile1" />
 
     <TextView
         android:id="@+id/naviName"
+        android:layout_weight="1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="이름"
@@ -28,6 +31,7 @@
 
     <TextView
         android:id="@+id/naviIntro"
+        android:layout_weight="1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="자기소개" />

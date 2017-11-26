@@ -45,6 +45,7 @@ public class ClientService extends Service implements Runnable {
     private String chat_text="채팅방 비어있음.\n";
     private String current_chat_text;
 
+
     private final IBinder mBinder = new Mybinder();
     private LocationManager locationManager;
     private MyLocationListener listener;
@@ -110,7 +111,7 @@ public class ClientService extends Service implements Runnable {
 
         Log.d("CSV","onStartCommand");
         SendBroadcast_chat(chat_text,EXTRA_ALL_MESSAGE);
-        SendBroadcast_chat(chat_name,chat_image_index);
+        SendBroadcast_chat_set(chat_name,chat_image_index);
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -313,7 +314,7 @@ public class ClientService extends Service implements Runnable {
 
         LocalBroadcastManager.getInstance(this).sendBroadcast(it);
     }
-    private void SendBroadcast_chat(String name,int image_index) {
+    private void SendBroadcast_chat_set(String name,int image_index) {
         Intent it = new Intent("EVENT_CHAT_SET");
 
 
@@ -363,6 +364,7 @@ Log.d("req","reqbraod");
     public int getMyImage_index(){return chat_image_index;}
     public void setChat_name(String name){chat_name = name;}
     public void setChat_image_index(int img){chat_image_index = img;}
+
 
     public void sendMessage(String outmsg) {Log.d("chat",outmsg); outMsg.println(outmsg);}
 
