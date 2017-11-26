@@ -6,7 +6,8 @@
     android:layout_height="match_parent"
     tools:context="org.androidtown.here_is.LoginActivity"
     android:orientation="vertical"
-    android:weightSum="1">
+    android:weightSum="1"
+    android:background="@drawable/backgound_login" >
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -14,31 +15,27 @@
         android:orientation="vertical"
         android:layout_weight="0.1"></LinearLayout>
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="로그인"
-        android:textSize="40dp"
-        android:gravity="center"
-        android:layout_weight="0.1"/>
-
 
     <EditText
         android:id="@+id/editText_ID"
+        android:textColor="#ffffff"
+        android:textColorHint="#ffffff"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.2"
-        android:hint="ID"
-        android:textSize="30dp"
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
-        android:layout_marginTop="20dp"/>
+        android:layout_marginTop="20dp"
+        android:layout_weight="0.2"
+        android:hint="아이디"
+        android:textSize="30dp" />
 
     <EditText
         android:id="@+id/editText_PW"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.2"
+        android:textColor="#ffffff"
+        android:textColorHint="#ffffff"
         android:hint="Password"
         android:textSize="30dp"
         android:layout_marginLeft="30dp"
@@ -48,6 +45,7 @@
         android:inputType="textPassword"/>
 
     <Button
+        android:textColor="#FF666666"
         android:id="@+id/btn_login_check"
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -57,16 +55,22 @@
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
         android:layout_marginTop="40dp"
-        android:onClick="btn_login_check_Clicked"/>
+        android:onClick="btn_login_check_Clicked"
+        android:background="#ffffffff"
+
+
+        />
 
     <Button
+        android:textColor="#ffffff"
         android:id="@+id/btn_signup"
         android:layout_width="300dp"
         android:layout_height="0dp"
         android:layout_gravity="center"
         android:layout_weight="0.115"
         android:onClick="btn_signup_Clicked"
-        android:text="회원가입" />
+        android:text="회원가입"
+        android:background="#00ff0000"  />
 
 
 
