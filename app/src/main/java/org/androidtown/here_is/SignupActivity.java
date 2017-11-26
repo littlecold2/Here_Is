@@ -11,7 +11,7 @@ import android.widget.Toast;
 
 import java.util.concurrent.ExecutionException;
 
-public class SignupActivity extends AppCompatActivity {
+public class SignupActivity extends Font {
     public static final String KEY_USER_DATA = "userdata";
     public static final int REQUEST_CODE_PROFILE = 101;
 

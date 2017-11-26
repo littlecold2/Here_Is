@@ -15,7 +15,7 @@ import org.json.JSONObject;
 
 import java.util.concurrent.ExecutionException;
 
-public class SignupProfileActivity extends AppCompatActivity {
+public class SignupProfileActivity extends Font {
     public static final String KEY_USER_DATA = "userdata";
 
     Button btn_profile_signup;

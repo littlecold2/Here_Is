@@ -25,7 +25,7 @@ import android.widget.TextView;
 
 import com.google.gson.Gson;
 
-public class ChattingActivity extends AppCompatActivity  {
+public class ChattingActivity extends Font {
 
 
 

@@ -10,7 +10,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-public class EditProfileActivity extends AppCompatActivity {
+public class EditProfileActivity extends Font {
     public static final String KEY_USER_DATA2 = "userdata2";
     public static final int REQUEST_CODE_PROFILE2 = 102;
 

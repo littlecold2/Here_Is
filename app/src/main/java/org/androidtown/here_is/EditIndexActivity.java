@@ -15,7 +15,7 @@ import org.json.JSONObject;
 
 import java.util.concurrent.ExecutionException;
 
-public class EditIndexActivity extends AppCompatActivity {
+public class EditIndexActivity extends Font {
     public static final String KEY_USER_DATA2 = "userdata2";
 
     ImageButton img1, img2, img3, img4, img5, img6, img7, img8, img9;

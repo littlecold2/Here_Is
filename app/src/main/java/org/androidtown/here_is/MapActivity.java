@@ -93,7 +93,7 @@ import noman.googleplaces.PlaceType;
 import noman.googleplaces.PlacesException;
 import noman.googleplaces.PlacesListener;
 
-public class MapActivity extends AppCompatActivity
+public class MapActivity extends Font
         implements
         NavigationView.OnNavigationItemSelectedListener,
         OnMapReadyCallback,
@@ -313,7 +313,8 @@ public class MapActivity extends AppCompatActivity
                     map.clear();
                    // showPlaceInformation(lastknownlocation);
                     pickMark(lastknownlocation,myName,"서버 연결 안됨");
-                    map.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(CS.getMyLocation().getLatitude(), CS.getMyLocation().getLongitude())));
+                    if(CS.get_key_location_ok())
+                        map.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(CS.getMyLocation().getLatitude(), CS.getMyLocation().getLongitude())));
                 }
 
 
