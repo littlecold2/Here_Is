@@ -10,6 +10,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.IBinder;
+import android.support.annotation.IdRes;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
@@ -20,10 +21,21 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.location.places.ui.PlacePicker;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.gson.Gson;
+import com.roughike.bottombar.BottomBar;
+import com.roughike.bottombar.OnTabReselectListener;
+import com.roughike.bottombar.OnTabSelectListener;
 
 public class ChattingActivity extends Font {
 
@@ -148,74 +160,99 @@ public class ChattingActivity extends Font {
 
 
 
+        BottomBar bottomBar = (BottomBar) findViewById(R.id.bottomBar_chat);
+        bottomBar.setOnTabSelectListener(new OnTabSelectListener() {
 
-
-        Button sendBtn = (Button)findViewById(R.id.sendBtn);
-        Button OUTBtn = (Button)findViewById(R.id.OUTbutton);
-        Button returnBtn = (Button)findViewById(R.id.returnbutton);
-
-        returnBtn.setOnClickListener(new Button.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                onBackPressed();
+            public void onTabSelected(@IdRes int tabId) {
 
-            }
-        });
-
-
-        sendBtn.setOnClickListener(new Button.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if(isService &&CS.get_key_server_ok()&&CS.getChat_room()!=-1) {
-                            CS.sendMessage(Jsonize(myID,myName, CS.getChat_room(), "chat", sendEditText.getText().toString()));
-                            runOnUiThread(new Runnable() {
-                                public void run() {
-                                    sendEditText.setText("");
-
-                                }
-                            });
-                        }
-                        else if(CS.getChat_room()==-1)
-                        {
-                            runOnUiThread(new Runnable() {
-
-                                public void run() {
-                                    sendEditText.setText("");
-                                    messageView.append("채팅방 비어있음.\n");
-                                }
-                            });
-
-                        }
-
-                    }
-                }).start();
-                //......
-            }
-        });
-        OUTBtn.setOnClickListener(new Button.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(isService &&CS.get_key_server_ok()) {
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            CS.sendMessage(Jsonize(CS.getChat_room(), "chat_logout"));
-//                            my_thread.interrupt();
-          //                  unbindService(conn);
-                  //          stopService(svcIntent);
-                            finish();
-                            //CS.setChat_text_clear();
-                        }
-                    }).start();
+                if(tabId == R.id.tab1){
+//                    onBackPressed();
                 }
-               // onBackPressed();
+
+                else if(tabId == R.id.tab2){
+
+                    if(isService &&CS.get_key_server_ok()) {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                CS.sendMessage(Jsonize(CS.getChat_room(), "chat_logout"));
+//                            my_thread.interrupt();
+                                //                  unbindService(conn);
+                                //          stopService(svcIntent);
+                                finish();
+                                //CS.setChat_text_clear();
+                            }
+                        }).start();
+                    }
+
+                }
+//
 
             }
         });
+
+        ImageButton sendBtn = (ImageButton)findViewById(R.id.sendBtn);
+     sendBtn.setOnClickListener(new ImageButton.OnClickListener() {
+         @Override
+         public void onClick(View v) {
+             new Thread(new Runnable() {
+                 @Override
+                 public void run() {
+                     if(isService &&CS.get_key_server_ok()&&CS.getChat_room()!=-1) {
+                         CS.sendMessage(Jsonize(myID,myName, CS.getChat_room(), "chat", sendEditText.getText().toString()));
+                         runOnUiThread(new Runnable() {
+                             public void run() {
+                                 sendEditText.setText("");
+
+                             }
+                         });
+                     }
+                     else if(CS.getChat_room()==-1)
+                     {
+                         runOnUiThread(new Runnable() {
+
+                             public void run() {
+                                 sendEditText.setText("");
+                                 messageView.append("채팅방 비어있음.\n");
+                             }
+                         });
+
+                     }
+
+                 }
+             }).start();
+         }
+     });
+
+        bottomBar.setOnTabReselectListener(new OnTabReselectListener() {
+            @Override
+            public void onTabReSelected(@IdRes int tabId) {
+                if(tabId == R.id.tab1){
+                    onBackPressed();
+                }
+                else if(tabId == R.id.tab2){
+
+                    if(isService &&CS.get_key_server_ok()) {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                CS.sendMessage(Jsonize(CS.getChat_room(), "chat_logout"));
+//                            my_thread.interrupt();
+                                //                  unbindService(conn);
+                                //          stopService(svcIntent);
+                                finish();
+                                //CS.setChat_text_clear();
+                            }
+                        }).start();
+                    }
+                    finish();
+                }
+
+            }
+        });
+
+
 
     } // onCreate
 

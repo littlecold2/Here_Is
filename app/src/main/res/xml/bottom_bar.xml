@@ -3,20 +3,20 @@
     <tabs>
         <tab
             id="@+id/tab1"
-            icon="@drawable/marker_profile1"
-            title="call" />
+            icon="@drawable/re_re_bot_menu"
+            title="menu" />
         <tab
             id="@+id/tab2"
-            icon="@drawable/image2"
-            title="contacts" />
+            icon="@drawable/re_re_bot_chat"
+            title="chat" />
         <tab
             id="@+id/tab3"
-            icon="@drawable/image3"
-            title="macro" />
+            icon="@drawable/re_re_bot_loc"
+            title="my loc" />
         <tab
             id="@+id/tab4"
-            icon="@drawable/image3"
-            title="macro" />
+            icon="@drawable/re_re_bot_find"
+            title="find loc" />
     </tabs>
 
 </PreferenceScreen>

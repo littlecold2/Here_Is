@@ -177,9 +177,6 @@ public class MapActivity extends Font
     private static final String EXTRA_ALL_MESSAGE ="all_chat_message";
     private static final String EXTRA_LOC_MESSAGE ="all_loc_message";
 
-    private View 	decorView;
- 	private int	uiOption;
-
 
     @Override
     protected void onPostResume() {
@@ -193,7 +190,7 @@ public class MapActivity extends Font
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-       // getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        //getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
      setContentView(R.layout.activity_map);
         FragmentManager fragmentManager = getFragmentManager();

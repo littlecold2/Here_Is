@@ -3,38 +3,54 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="org.androidtown.here_is.ChattingActivity"
     android:orientation="vertical"
-    >
+    android:background="@drawable/back_chat">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="0.5"
-        android:weightSum="3">
+        android:layout_weight="0.45"
+        android:layout_marginBottom="5dp"
+        >
         <ImageView
             android:id="@+id/profileImg"
+
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:src="@drawable/profile1"
-            android:layout_weight="2"/>
+            android:layout_weight="1"/>
         <TextView
             android:id="@+id/idTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="0.5"
             android:layout_gravity="center"
             android:textSize="20sp"
             android:text="name"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:layout_gravity="center"
+            android:textSize="20sp"
+
+            android:text="님과의 채팅"/>
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_weight="4">
+        android:layout_weight="2">
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:layout_marginBottom="20dp"
+
             android:layout_weight="3.5">
             <TextView
                 android:id="@+id/messageView"
@@ -48,61 +64,41 @@
             android:layout_height="wrap_content"
             android:focusable="true"
             android:focusableInTouchMode="true">
+
             <EditText
                 android:id="@+id/sendEditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:imeOptions="actionSend"
-
-                android:layout_weight="0.5"/>
-            <Button
+                android:layout_width="0dp"
+                android:layout_height="30dp"
+                android:layout_weight="0.5"
+                android:paddingLeft="10dp"
+                android:layout_marginLeft="25dp"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/back_chat_edit"
+                android:hint="전송 할 메시지"
+                android:textSize="15sp"
+                android:imeOptions="actionSend" />
+            <ImageButton
+                android:layout_weight="0.005"
                 android:id="@+id/sendBtn"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="25dp"
+                android:background="@drawable/re_re_chat_btn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:text="SEND"
                 />
         </LinearLayout>
 
     </LinearLayout>
-    <LinearLayout
+    <com.roughike.bottombar.BottomBar
+        android:id="@+id/bottomBar_chat"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.5"
-        android:weightSum="1.5">
-        <Button
-            android:id="@+id/returnbutton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_weight="0.5"
-            android:text="맵으로 돌아가기"
-            android:textSize="12sp"
-            />
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:background="#BB000000"
 
+        app:bb_tabXmlResource="@xml/bottom_bar_chat"
+        app:layout_anchor="@+id/include"
+        app:layout_anchorGravity="bottom|center" />
 
-        <Button
-            android:id="@+id/StreamingBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_weight="0.5"
-            android:text="스트리밍"
-            android:textSize="12sp"
-        />
-
-        <Button
-            android:id="@+id/OUTbutton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_weight="0.5"
-            android:text="채팅방 로그아웃"
-            android:textSize="12sp"
-            />
-    </LinearLayout>
 
 </LinearLayout>

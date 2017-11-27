@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <tabs>
+        <tab
+            id="@+id/tab1"
+            icon="@drawable/re_chat_map"
+            title="to map" />
+        <!--<tab-->
+            <!--id="@+id/tab2"-->
+            <!--icon="@drawable/re_re_bot_chat"-->
+            <!--title=" " />-->
+        <tab
+            id="@+id/tab2"
+            icon="@drawable/re_chat_leave"
+            title="leave chat" />
+
+    </tabs>
+
+</PreferenceScreen>
