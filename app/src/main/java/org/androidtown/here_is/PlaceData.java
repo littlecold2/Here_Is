@@ -13,13 +13,14 @@ public class PlaceData {
     LatLng location;
     String name;
     String address;
-    //String icon;
+    String type;
 
-    PlaceData(String name, String address, LatLng location)
+    PlaceData(String name, String address, LatLng location,String type)
     {
         this.location =location;
         this.name = name;
         this.address = address;
+        this.type = type;
     }
 
     public String getName() {
@@ -32,5 +33,9 @@ public class PlaceData {
 
     public LatLng getLocation() {
         return location;
+    }
+
+    public String getType() {
+        return type;
     }
 }
