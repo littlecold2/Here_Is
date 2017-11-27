@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <group android:checkableBehavior="single">
+    <group android:title="Menu">
+
         <item
             android:id="@+id/info"
-            android:title="정보" />
+            android:title="정보 수정"
+            />
         <item
             android:id="@+id/stream"
             android:title="스트리밍" />
@@ -12,35 +14,28 @@
             android:id="@+id/chat"
             android:title="채팅" />
         <item
-            android:id="@+id/rest"
-            android:title="음식점" />
-        <item
-            android:id="@+id/bank"
-            android:title="까페" />
-        <item
-            android:id="@+id/bus"
-            android:title="버스정류장" />
-        <item
-            android:id="@+id/off"
-            android:title="주변정보 초기화"/>
-        <item
             android:id="@+id/logout"
             android:title="로그아웃" />
 
-
     </group>
-
-    <item android:title="Communicate">
+    <item android:title="주변 위치">
         <menu>
             <item
-                android:id="@+id/nav_share"
-                android:icon="@drawable/ic_menu_share"
-                android:title="Share" />
+               android:id="@+id/rest"
+               android:title="음식점" />
             <item
-                android:id="@+id/nav_send"
-                android:icon="@drawable/ic_menu_send"
-                android:title="Send" />
+             android:id="@+id/bank"
+                android:title="까페" />
+            <item
+            android:id="@+id/bus"
+            android:title="버스정류장" />
+            <item
+            android:id="@+id/off"
+            android:title="주변정보 초기화"/>
         </menu>
+
+
     </item>
+
 
 </menu>

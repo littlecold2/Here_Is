@@ -50,6 +50,7 @@ import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -125,8 +126,8 @@ public class MapActivity extends Font
     private TextView introView;
     private String targetID;
     private String targetIntro;
-    private Button Btn_chatting;
-    private Button Btn_Streaming;
+    private ImageButton Btn_chatting;
+    private ImageButton Btn_Streaming;
 //################ Profile View ################
 
     private ImageView naviProfile;
@@ -581,20 +582,20 @@ public class MapActivity extends Font
                     nicknameView = (TextView) profileView.findViewById(R.id.nicknameView);
                     introView = (TextView) profileView.findViewById((R.id.introView));
                     targetID = ((Message) marker.getTag()).getId();
-                    Btn_chatting = (Button) profileView.findViewById(R.id.chatBtn);
-                    Btn_Streaming = (Button) profileView.findViewById(R.id.chatStreaming);
+                    Btn_chatting = (ImageButton) profileView.findViewById(R.id.chatBtn);
+                    Btn_Streaming = (ImageButton) profileView.findViewById(R.id.chatStreaming);
                     // 채팅버튼 누를 때
 
                     final int image= ((Message) marker.getTag()).getImage();
                     final String name = ((Message) marker.getTag()).getName();
                     String intro = ((Message) marker.getTag()).getIntro();
-
+                    final Message msg = ((Message) marker.getTag());
                     String resName = "@drawable/profile" + image;
                     int resID = getResources().getIdentifier(resName, "drawable", getApplicationContext().getPackageName());
 
                     AlertDialog.Builder buider = new AlertDialog.Builder(MapActivity.this); //AlertDialog.Builder 객체 생성
 
-                    buider.setTitle("사용자 정보"); //Dialog 제목
+                    //buider.setTitle("사용자 정보"); //Dialog 제목
                   //  buider.setIcon(android.R.drawable.ic_menu_add); //제목옆의 아이콘 이미지(원하는 이미지 설정)
 
                     profileImage.setImageResource(resID);
@@ -604,7 +605,7 @@ public class MapActivity extends Font
 
                     final AlertDialog dialog = buider.create();
                     dialog.show();
-                    Btn_chatting.setOnClickListener(new Button.OnClickListener() {
+                    Btn_chatting.setOnClickListener(new ImageButton.OnClickListener() {
                         @Override
                         public void onClick(View view) {
 //                    Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
@@ -632,15 +633,16 @@ public class MapActivity extends Font
                         }
                     });
                     //################ Profile View ################
-                    Btn_Streaming.setOnClickListener(new Button.OnClickListener() {
+                    Btn_Streaming.setOnClickListener(new ImageButton.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            Log.d("url","url: " +((Message) marker.getTag()).getUrl());
-                            if( ((Message) marker.getTag()) .getUrl().isEmpty() ) {
+
+                            if( msg.getUrl().isEmpty()|| msg.getUrl().equals("NO URL")) {
                                 Toast.makeText(getApplicationContext(), "스트리밍 주소가 없습니다.", Toast.LENGTH_LONG).show();
                             }
                             else
                             {
+
                                 startActivity(new Intent(Intent.ACTION_VIEW).setData(Uri.parse(((Message) marker.getTag()).getUrl()))
                                         .setPackage("com.google.android.youtube"));
                             }
@@ -657,9 +659,8 @@ public class MapActivity extends Font
                     ImageView loc_profileImage = (ImageView) loc_profileView.findViewById(R.id.loc_image);
                     TextView nameView = (TextView) loc_profileView.findViewById(R.id.loc_name);
                     TextView addressView = (TextView) loc_profileView.findViewById((R.id.loc_address));
-                    Button Btn_find_loc = (Button) loc_profileView.findViewById(R.id.find_loc);
-                    Button etc = (Button) loc_profileView.findViewById(R.id.etcetc);
-                    // 채팅버튼 누를 때
+                    ImageButton Btn_find_loc = (ImageButton) loc_profileView.findViewById(R.id.find_loc);
+
                     final LatLng loc = ((PlaceData)marker.getTag()).getLocation();
                     String name = ((PlaceData) marker.getTag()).getName();
                     String add = ((PlaceData) marker.getTag()).getAddress();
@@ -671,7 +672,7 @@ public class MapActivity extends Font
 
                     AlertDialog.Builder buider = new AlertDialog.Builder(MapActivity.this); //AlertDialog.Builder 객체 생성
 
-                    buider.setTitle("위치 정보"); //Dialog 제목
+                    //buider.setTitle("위치 정보"); //Dialog 제목
                   // buider.setIcon(android.R.drawable.ic_menu); //제목옆의 아이콘 이미지(원하는 이미지 설정)
 
                     loc_profileImage.setImageResource(resID);
@@ -681,7 +682,7 @@ public class MapActivity extends Font
 
                     final AlertDialog dialog = buider.create();
                     dialog.show();
-                    Btn_find_loc.setOnClickListener(new Button.OnClickListener() {
+                    Btn_find_loc.setOnClickListener(new ImageButton.OnClickListener() {
                         @Override
                         public void onClick(View view) {
 
@@ -697,12 +698,7 @@ public class MapActivity extends Font
                         }
                     });
                     //################ Profile View ################
-                    etc.setOnClickListener(new Button.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            dialog.cancel();
-                        }
-                    });
+
                 }
 
                 // 토스트나 알럿 메세지...
@@ -714,8 +710,9 @@ public class MapActivity extends Font
 
 
         //map.moveCamera(CameraUpdateFactory.newLatLng( new LatLng( 37.628, 126.825)));
-         map.animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng( 37.628, 126.825)).zoom(16).build()));
-//         map.animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng( 37.628, 126.825)).zoom(20).tilt(30).build()));
+         map.moveCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng( 37.628, 126.825)).zoom(16).build()));
+//         map.animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng( 37.628, 126.825)).zoom(16).build()));
+//         map.animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder().target(new LatLng( 37.628, 126.825)).zoom(16).tilt(30).build()));
 
         //map.animateCamera(CameraUpdateFactory.zoomTo(16));
 
@@ -747,6 +744,7 @@ public class MapActivity extends Font
             markerOptions.position(place.getLatLng());
             markerOptions.title(place.getName().toString());
             markerOptions.snippet(place.getAddress().toString());
+            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.place_48));
 
             Marker item = map.addMarker(markerOptions);
             item.setTag(new PlaceData(place.getName().toString(),place.getAddress().toString(),place.getLatLng(),"place"));
@@ -770,7 +768,7 @@ public class MapActivity extends Font
         markerOptions.snippet(intro); // 인사 넣음
 
         markerOptions.draggable(true); // 드래그 가능하도록
-        markerOptions.flat(true);
+        //markerOptions.flat(true);
 
         String resName = "@drawable/marker_profile" + image_index;
         int resID = getResources().getIdentifier(resName, "drawable", this.getPackageName());
@@ -795,7 +793,7 @@ public class MapActivity extends Font
         markerOptions.snippet(address); // 주소 넣음
 
         markerOptions.draggable(true); // 드래그 가능하도록
-        markerOptions.flat(true);
+       // markerOptions.flat(true);
 
         String resName = "@drawable/marker_profile" + myImage_index;
         int resID = getResources().getIdentifier(resName, "drawable", this.getPackageName());

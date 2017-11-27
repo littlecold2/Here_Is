@@ -10,72 +10,107 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="right"
-        android:text="프로필"
+        android:layout_gravity="center"
+        android:text="사용자정보"
         android:textAllCaps="true"
         android:textSize="40sp"
         android:textStyle="bold"
         android:layout_marginTop="20dp"
+        android:layout_marginLeft = "20dp"
         android:layout_marginRight="20dp"
         android:layout_weight="1"
+        android:textColor="#000000"
         />
 
     <ImageView
         android:id="@+id/profileImage_dialog"
-        android:layout_width="211dp"
-        android:layout_height="198dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:src="@drawable/profile1"
         android:layout_gravity = "center"
+        android:scaleType="center"
         android:layout_weight="3"
         />
-
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="2">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:text="      닉네임 : "
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:layout_weight="1"/>
     <TextView
         android:id="@+id/nicknameView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="    닉네임 : "
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_weight="1.5"/>
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:text="이름"
+        android:textSize="14sp"
+        android:textColor="#000000"
+        android:layout_weight="0.4"/>
+    </LinearLayout>
 
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_weight="2">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:text="      소개 : "
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:layout_weight="1"/>
     <TextView
         android:id="@+id/introView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="    소개글 : "
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_weight="1.5"/>
+        android:layout_marginBottom="10dp"
+        android:text="안녕"
+        android:textSize="14sp"
+        android:textColor="#000000"
+        android:layout_weight="0.33"/>
+</LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
         android:orientation="horizontal"
         android:layout_weight="4"
-        android:weightSum="3">
+        >
 
-        <Button
+        <ImageButton
             android:id="@+id/chatBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="30dp"
             android:layout_weight="1"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            android:backgroundTint="@android:color/darker_gray"
+            android:backgroundTint="@android:color/transparent"
             android:lineSpacingExtra="8sp"
+            android:src="@drawable/chatbtn"
             android:text="채팅"
             android:textSize="20sp"
-            android:textStyle="bold"
-            />
+            android:textStyle="bold" />
 
-        <Button
+        <ImageButton
             android:id="@+id/chatStreaming"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
+            android:layout_marginRight="30dp"
             android:layout_weight="1"
-            android:backgroundTint="@android:color/darker_gray"
+            android:backgroundTint="@android:color/transparent"
+            android:src="@drawable/strambtn"
             android:text="스트리밍"
             android:textSize="20sp"
             android:textStyle="bold" />
