@@ -23,6 +23,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -49,6 +50,7 @@ public class ChattingActivity extends Font {
     private ImageView profieImg;
     private TextView idTextView;
     private TextView messageView;
+    private ScrollView scrollView;
     private EditText sendEditText;
 
     private SharedPreferences userinfo;
@@ -102,6 +104,7 @@ public class ChattingActivity extends Font {
         profieImg = (ImageView)findViewById(R.id.profileImg);
         idTextView = (TextView)findViewById(R.id.idTextView);
         messageView = (TextView)findViewById(R.id.messageView);
+        scrollView = (ScrollView)findViewById(R.id.chat_scroll);
         sendEditText = (EditText)findViewById(R.id.sendEditText);
 
 
@@ -143,6 +146,7 @@ public class ChattingActivity extends Font {
             public void onReceive(Context context, Intent intent) {
                 String message = intent.getExtras().getString(EXTRA_ALL_MESSAGE);
                 messageView.setText(message);
+                scrollView.fullScroll(View.FOCUS_DOWN);
             }
         };
         setMessageReceiver = new BroadcastReceiver() {
@@ -215,6 +219,8 @@ public class ChattingActivity extends Font {
                              public void run() {
                                  sendEditText.setText("");
                                  messageView.append("채팅방 비어있음.\n");
+                                 scrollView.fullScroll(View.FOCUS_DOWN);
+
                              }
                          });
 
