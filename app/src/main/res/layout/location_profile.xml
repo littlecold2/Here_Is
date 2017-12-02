@@ -81,9 +81,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_weight="4"
-        android:weightSum="3">
+        android:orientation="horizontal"
+        android:layout_weight="4">
 
         <ImageButton
             android:id="@+id/find_loc"
@@ -91,7 +90,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
+
             android:layout_weight="1"
             android:backgroundTint="@android:color/transparent"
             android:lineSpacingExtra="8sp"
@@ -99,6 +98,21 @@
             android:text="길 찾기"
             android:textSize="20sp"
             android:textStyle="bold" />
+        <ImageButton
+            android:id="@+id/search_loc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+
+            android:layout_marginRight="20dp"
+            android:layout_weight="1"
+            android:backgroundTint="@android:color/transparent"
+            android:lineSpacingExtra="8sp"
+            android:src="@drawable/search_loc_btn"
+            android:text="길 찾기"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
 
     </LinearLayout>
 

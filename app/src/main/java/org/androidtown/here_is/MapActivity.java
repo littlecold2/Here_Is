@@ -282,9 +282,7 @@ public class MapActivity extends Font
 //            }
 //        });
 
-        intent = new Intent(getApplicationContext(), WebviewActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        startActivity(intent);
+
 
         //#############브로드캐스트############
 
@@ -673,6 +671,7 @@ public class MapActivity extends Font
                     TextView nameView = (TextView) loc_profileView.findViewById(R.id.loc_name);
                     TextView addressView = (TextView) loc_profileView.findViewById((R.id.loc_address));
                     ImageButton Btn_find_loc = (ImageButton) loc_profileView.findViewById(R.id.find_loc);
+                    ImageButton Btn_search_loc = (ImageButton) loc_profileView.findViewById(R.id.search_loc);
 
                     final LatLng loc = ((PlaceData)marker.getTag()).getLocation();
                     String name = ((PlaceData) marker.getTag()).getName();
@@ -710,6 +709,17 @@ public class MapActivity extends Font
                             // 길찾기ㄱ
                         }
                     });
+                    Btn_search_loc.setOnClickListener(new ImageButton.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+
+                            Intent intent = new Intent(getApplicationContext(), WebviewActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                            intent.putExtra("loc",add.substring(0,add.lastIndexOf("동")+1) +" "+name);
+                            startActivity(intent);
+                        }
+                    });
+
                     //################ Profile View ################
 
                 }
