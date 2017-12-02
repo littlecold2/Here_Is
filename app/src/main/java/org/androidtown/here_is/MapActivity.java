@@ -27,6 +27,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.Process;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -49,6 +50,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -156,6 +160,13 @@ public class MapActivity extends Font
     private LatLng lastknownlocation;
     private static final int PLACE_PICKER_REQUEST =1; // 위치검색 쓸 때
     private List<Polyline> L_Poly;
+
+    private String Dis;
+    private String Dur;
+    private String Bus;
+
+    private Marker bus_marker;
+
 //######### 주변 정보 ##########
 
     private List<Message> User_loc_List;
@@ -271,7 +282,9 @@ public class MapActivity extends Font
 //            }
 //        });
 
-
+        intent = new Intent(getApplicationContext(), WebviewActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
 
         //#############브로드캐스트############
 
@@ -561,7 +574,7 @@ public class MapActivity extends Font
 
 
 
-        map.setPadding(0,00,0,00); // left, top, right, bottom //버튼이나 그런거 위치 한정?
+        map.setPadding(0,00,0,150); // left, top, right, bottom //버튼이나 그런거 위치 한정?
         map.getUiSettings().setZoomControlsEnabled(true); // 줌 버튼 가능하게
 
 
@@ -665,7 +678,7 @@ public class MapActivity extends Font
                     String name = ((PlaceData) marker.getTag()).getName();
                     String add = ((PlaceData) marker.getTag()).getAddress();
                     String type = ((PlaceData) marker.getTag()).getType();
-
+                    bus_marker = marker;
 
                     String resName = "@drawable/"+type+"_128";
                     int resID = getResources().getIdentifier(resName, "drawable", getApplicationContext().getPackageName());
@@ -746,10 +759,10 @@ public class MapActivity extends Font
             markerOptions.snippet(place.getAddress().toString());
             markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.place_48));
 
+            Log.d("add",place.getAddress().toString());
             Marker item = map.addMarker(markerOptions);
             item.setTag(new PlaceData(place.getName().toString(),place.getAddress().toString(),place.getLatLng(),"place"));
             previous_marker.add(item);
-
             map.moveCamera(CameraUpdateFactory.newLatLng(place.getLatLng()));
             map.animateCamera(CameraUpdateFactory.zoomTo(17));
         }
@@ -908,8 +921,14 @@ public class MapActivity extends Font
             builder.setPositiveButton("예", new DialogInterface.OnClickListener() { // 예버튼
                 public void onClick(DialogInterface dialog, int whichButton) {
                     moveTaskToBack(true);
-                    finish();
-                    android.os.Process.killProcess(android.os.Process.myPid());
+//                    finish();
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                        finishAffinity();
+                    }
+//                    ActivityCompat.finishAffinity();
+
+                    Process.killProcess(Process.myPid());
                 }
             });
             builder.setNegativeButton("아니오", new DialogInterface.OnClickListener() { // 아니오버튼
@@ -1067,6 +1086,7 @@ public class MapActivity extends Font
                     markerOptions.position(latLng);
                     markerOptions.title(place.getName());
                     markerOptions.snippet(place.getVicinity());
+
                     //Log.d("place","icon: "+place.getIcon()+" type:"+place.getTypes().toString());
 
                     Marker item = map.addMarker(markerOptions);
@@ -1090,7 +1110,7 @@ public class MapActivity extends Font
                         }
                     }
                     previous_marker.add(item);
-
+                    Log.d("add",place.getVicinity().toString());
                 }
 
                 //중복 마커 제거
@@ -1123,6 +1143,7 @@ public class MapActivity extends Font
                         .key("AIzaSyDdwDyx5xMSgY_b7IPNnCrB9qWLMQ-EDgM")
                         .latlng(location.latitude, location.longitude)
                         .radius(500)
+                        .language("ko", "KR")
                         .type(PlaceType.RESTAURANT)
                         .build()
                         .execute();
@@ -1135,6 +1156,7 @@ public class MapActivity extends Font
                         .key("AIzaSyDdwDyx5xMSgY_b7IPNnCrB9qWLMQ-EDgM")
                         .latlng(location.latitude, location.longitude)
                         .radius(500)
+                        .language("ko", "KR")
                         .type(PlaceType.CAFE)
                         .build()
                         .execute();
@@ -1146,6 +1168,7 @@ public class MapActivity extends Font
                         .key("AIzaSyDdwDyx5xMSgY_b7IPNnCrB9qWLMQ-EDgM")
                         .latlng(location.latitude, location.longitude)
                         .radius(500)
+                        .language("ko", "KR")
                         .type(PlaceType.BUS_STATION)
                         .build()
                         .execute();
@@ -1166,7 +1189,7 @@ public class MapActivity extends Font
 //        Log.d("l_d",a.format(date));
 
         //derection
-        url = "https://maps.googleapis.com/maps/api/directions/json?" +  str_origin +"&"+str_dest +"&mode=transit"+"&alternatives=true"+  "&key=AIzaSyAKq5CUx3CsSpnWt-Ls7P_SPzCtz6FpVRE ";
+        url = "https://maps.googleapis.com/maps/api/directions/json?" +  str_origin +"&"+str_dest +"&mode=transit"+"&alternatives=true"+  "&key=AIzaSyC6tzB9C33kG_99yhC0L0jSKhK3KJHycSk";
         return url;
     }
 
@@ -1300,8 +1323,8 @@ public class MapActivity extends Font
                     HashMap<String, String> point = path.get(j);
 
                     if(point.containsKey("Distance")||point.containsKey("Duration")) { // 거리나 소요시간 키를 가지고 있으면
-                        String Dis = point.get("Distance"); // 그 거리 정보 가져온다.
-                        String Dur = point.get("Duration"); // 그 소요시간 정보 가져온다.
+                        Dis = point.get("Distance"); // 그 거리 정보 가져온다.
+                        Dur = point.get("Duration"); // 그 소요시간 정보 가져온다.
 //                        tv.append(Dis + " , " + Dur + "\n"); // 텍스트 뷰에 그 정보들 뿌려준다.
                     }
                     else{
@@ -1311,6 +1334,14 @@ public class MapActivity extends Font
 //                        Log.d("d_parsing", "lat: " + Double.toString(lat) + "  lng:" + Double.toString(lng));
                         points.add(position);
                     }
+                    if(point.containsKey("bus"))
+                    {
+                        Bus = point.get("bus");
+                        bus_marker.setTitle("버스 노선: " +Bus);
+                        bus_marker.setSnippet("거리: " +Dis+" , "+"소요 시간: "+Dur);
+                        bus_marker.showInfoWindow();
+                    }
+
 
                 } // for
                 // Adding all the points in the route to LineOptions

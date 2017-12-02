@@ -24,7 +24,7 @@ public class DataParser {// Google Direction APi 받아온거 파싱 (길찾기)
         JSONArray jRoutes;
         JSONArray jLegs;
         JSONArray jSteps;
-
+        Log.d("parse","ps: "+jObject.toString());
         try {
             jRoutes = jObject.getJSONArray("routes");
 
@@ -33,10 +33,13 @@ public class DataParser {// Google Direction APi 받아온거 파싱 (길찾기)
                 jLegs = ((JSONObject) jRoutes.get(i)).getJSONArray("legs");
                 List path = new ArrayList<>();
                 List l_DD = new ArrayList<>();
+                String jbus="";
                 /** Traversing all legs */
                 for (int j = 0; j < jLegs.length(); j++) {
                     jSteps = ((JSONObject) jLegs.get(j)).getJSONArray("steps");
                     HashMap<String,String> h_DD = new HashMap<>(); // 거리, 소요시간 저장할 해쉬맵(키,벨류 사용한다)
+                    Log.d("ps","ps2:"+jSteps.toString());
+
 
                     JSONObject jDis = ((JSONObject)jLegs.get(i)).getJSONObject("distance"); // distance 키값 오브젝트 가져온다.
                     JSONObject jDur = ((JSONObject)jLegs.get(i)).getJSONObject("duration"); // duration 키값 오브젝트 가져온다.
@@ -50,6 +53,11 @@ public class DataParser {// Google Direction APi 받아온거 파싱 (길찾기)
                     for (int k = 0; k < jSteps.length(); k++) {
 
                         String polyline = "";
+
+                        if(((JSONObject)jSteps.get(k)).has("transit_details")) {
+                            jbus = ((JSONObject)jSteps.get(k)).getJSONObject("transit_details").getJSONObject("line").get("short_name").toString();
+
+                        }
                         polyline = (String) ((JSONObject) ((JSONObject) jSteps.get(k)).get("polyline")).get("points");
                         List<LatLng> list = decodePoly(polyline);
 
@@ -58,6 +66,7 @@ public class DataParser {// Google Direction APi 받아온거 파싱 (길찾기)
                             HashMap<String, String> hm = new HashMap<>();
                             hm.put("lat", Double.toString((list.get(l)).latitude));
                             hm.put("lng", Double.toString((list.get(l)).longitude));
+                            hm.put("bus",jbus);
                             path.add(hm);
                         }
                     }
@@ -181,6 +190,9 @@ public class DataParser {// Google Direction APi 받아온거 파싱 (길찾기)
 
         return poly;
     }
+
+
+
 
 
 }
