@@ -25,7 +25,7 @@
         tools:replace="android:allowBackup">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyDmpZ5uLLGl2zfkOmUYkyM81MMplfyN_dY" />
+            android:value="AIzaSyDd5yE0iEtz41Cm4NNoyL_Cud3htc61lYM" />
 
         <activity
             android:name=".SplashActivity"
