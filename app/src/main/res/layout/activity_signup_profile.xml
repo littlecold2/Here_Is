@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="org.androidtown.here_is.SignupProfileActivity"
+    android:background="@drawable/back"
     android:orientation="vertical"
     android:weightSum="1">
 
@@ -18,6 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:text="프로필 이미지"
+            android:textColor="#ffffff"
             android:textSize="30dp"
             android:gravity="center"/>
 
@@ -42,7 +44,7 @@
             android:layout_marginBottom="5dp"
             android:src="@drawable/profile1"
             android:scaleType="centerInside"
-            android:background="#FFFFFFFF"
+            android:background="#00ff0000"
             android:onClick="img_1_Clicked"/>
 
         <ImageButton
@@ -57,7 +59,7 @@
             android:layout_marginBottom="5dp"
             android:src="@drawable/profile2"
             android:scaleType="centerInside"
-            android:background="#FFFFFFFF"
+            android:background="#00ff0000"
             android:onClick="img_2_Clicked"/>
 
         <ImageButton
@@ -72,7 +74,7 @@
             android:layout_marginBottom="5dp"
             android:src="@drawable/profile3"
             android:scaleType="centerInside"
-            android:background="#FFFFFFFF"
+            android:background="#00ff0000"
             android:onClick="img_3_Clicked"/>
 
     </LinearLayout>
@@ -96,7 +98,7 @@
             android:layout_marginBottom="5dp"
             android:src="@drawable/profile4"
             android:scaleType="centerInside"
-            android:background="#FFFFFFFF"
+            android:background="#00ff0000"
             android:onClick="img_4_Clicked"/>
 
         <ImageButton
@@ -111,7 +113,7 @@
             android:layout_marginBottom="5dp"
             android:src="@drawable/profile5"
             android:scaleType="centerInside"
-            android:background="#FFFFFFFF"
+            android:background="#00ff0000"
             android:onClick="img_5_Clicked"/>
 
         <ImageButton
@@ -126,7 +128,7 @@
             android:layout_marginBottom="5dp"
             android:src="@drawable/profile6"
             android:scaleType="centerInside"
-            android:background="#FFFFFFFF"
+            android:background="#00ff0000"
             android:onClick="img_6_Clicked"/>
 
     </LinearLayout>
@@ -150,7 +152,7 @@
             android:layout_marginBottom="5dp"
             android:src="@drawable/profile7"
             android:scaleType="centerInside"
-            android:background="#FFFFFFFF"
+            android:background="#00ff0000"
             android:onClick="img_7_Clicked"/>
 
         <ImageButton
@@ -165,7 +167,7 @@
             android:layout_marginBottom="5dp"
             android:src="@drawable/profile8"
             android:scaleType="centerInside"
-            android:background="#FFFFFFFF"
+            android:background="#00ff0000"
             android:onClick="img_8_Clicked"/>
 
         <ImageButton
@@ -180,7 +182,7 @@
             android:layout_marginBottom="5dp"
             android:src="@drawable/profile9"
             android:scaleType="centerInside"
-            android:background="#FFFFFFFF"
+            android:background="#00ff0000"
             android:onClick="img_9_Clicked"/>
 
     </LinearLayout>
@@ -195,14 +197,18 @@
             android:id="@+id/btn_profile_signup"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text=" 회  원  가  입 "
+            android:text="회  원  가  입"
+            android:background="#00ff0000"
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
             android:layout_marginTop="25dp"
             android:layout_marginBottom="25dp"
+            android:textColor="#ffffff"
+            android:textSize="20dp"
             android:onClick="btn_profile_signup_Clicked"/>
 
     </LinearLayout>
 
 
+    <!--수정 11.30/11시-->
 </LinearLayout>

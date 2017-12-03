@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/back"
     android:orientation="vertical"
     android:weightSum="1"
     tools:context="org.androidtown.here_is.EditProfileActivity">
@@ -18,6 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
+            android:textColor="#ffffff"
             android:text="정보수정"
             android:textSize="30dp" />
 
@@ -45,6 +47,7 @@
             android:paddingLeft="17dp"
             android:paddingTop="13dp"
             android:text="I D"
+            android:textColor="#ffffff"
             android:textSize="20dp" />
 
         <EditText
@@ -79,6 +82,7 @@
             android:paddingLeft="13dp"
             android:paddingTop="15dp"
             android:text="PW"
+            android:textColor="#ffffff"
             android:textSize="20dp" />
 
         <EditText
@@ -113,6 +117,7 @@
             android:paddingLeft="11dp"
             android:paddingTop="15dp"
             android:text="이름"
+            android:textColor="#ffffff"
             android:textSize="18dp" />
 
         <EditText
@@ -146,6 +151,7 @@
             android:paddingLeft="15dp"
             android:paddingTop="10dp"
             android:text="자기\n소개"
+            android:textColor="#ffffff"
             android:textSize="15dp" />
 
         <EditText
@@ -174,6 +180,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:text="YOUTUBE 스트리밍 URL"
+                android:textColor="#ffffff"
                 android:gravity="left|bottom"
                 android:layout_marginLeft="35dp"/>
 
@@ -203,7 +210,9 @@
                 android:layout_gravity="top"
                 android:layout_marginRight="30dp"
                 android:layout_weight="0.25"
+                android:background="#00ff0000"
                 android:text="찾기"
+                android:textColor="#ffffff"
                 android:textSize="20dp" />
         </LinearLayout>
 
@@ -224,12 +233,15 @@
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
             android:layout_marginTop="10dp"
+            android:background="#00ff0000"
             android:onClick="btn_edit_index_Clicked"
-            android:text=" 프 로 필 사 진   고 르 기 "
-            android:textSize="30dp" />
+            android:text="프로필 사진 고르기"
+            android:textColor="#ffffff"
+            android:textSize="25dp" />
 
 
     </LinearLayout>
 
 
+    <!--수정 11.30/11시-->
 </LinearLayout>

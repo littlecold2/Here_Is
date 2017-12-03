@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="org.androidtown.here_is.SignupActivity"
+    android:background="@drawable/back"
     android:orientation="vertical"
     android:weightSum="1">
 
@@ -18,6 +19,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:text="회원가입"
+            android:textColor="#ffffff"
+            android:textColorHint="#ffffff"
             android:textSize="30dp"
             android:gravity="center"/>
 
@@ -35,6 +38,8 @@
             android:layout_height="match_parent"
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
+            android:textColor="#ffffff"
+            android:textColorHint="#ffffff"
             android:hint="ID"/>
 
     </LinearLayout>
@@ -51,7 +56,9 @@
             android:layout_height="match_parent"
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
+            android:textColor="#ffffff"
             android:hint="PW"
+            android:textColorHint="#ffffff"
             android:inputType="textPassword"/>
 
     </LinearLayout>
@@ -68,6 +75,8 @@
             android:layout_height="match_parent"
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
+            android:textColor="#ffffff"
+            android:textColorHint="#ffffff"
             android:hint="이름"/>
 
     </LinearLayout>
@@ -84,6 +93,8 @@
             android:layout_height="match_parent"
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
+            android:textColor="#ffffff"
+            android:textColorHint="#ffffff"
             android:hint="자기소개"/>
 
     </LinearLayout>
@@ -103,7 +114,9 @@
             android:layout_weight="0.75"
             android:layout_marginLeft="30dp"
             android:layout_marginRight="10dp"
-            android:hint="YOUTUBE 스트리밍 URL"/>
+            android:hint="개인 채널 주소를 넣어주세요"
+            android:textColorHint="#ffffff"
+            android:textColor="#ffffff"/>
 
         <Button
             android:id="@+id/btn_youtube"
@@ -113,7 +126,9 @@
             android:layout_weight="0.25"
             android:layout_marginRight="30dp"
             android:text="찾기"
+            android:textColor="#ffffff"
             android:textSize="20dp"
+            android:background="#00ff0000"
             android:onClick="btn_youtube_Clicked"/>
 
     </LinearLayout>
@@ -128,12 +143,14 @@
             android:id="@+id/btn_profile_select"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text=" 프 로 필 사 진   고 르 기 "
+            android:textColor="#ffffff"
+            android:text="프로필 사진 고르기"
             android:textSize="30dp"
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
             android:layout_marginTop="10dp"
             android:layout_marginBottom="50dp"
+            android:background="#00ff0000"
             android:onClick="btn_profile_select_Clicked"/>
 
 
@@ -141,4 +158,5 @@
 
 
 
+    <!--수정 11.30/11시-->
 </LinearLayout>
