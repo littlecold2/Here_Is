@@ -408,7 +408,7 @@ Log.d("req","reqbraod");
             {
                 Log.d("CSV", "n" +
                         "ot connect");
-                Toast.makeText(getApplicationContext(), "서버 연결 안됨\n 위치 받아옴 "+String.format(Locale.KOREA, "%.3f", lastKnownLocation.getLatitude()) + " , " + String.format(Locale.KOREA, "%.3f", lastKnownLocation.getLongitude()), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(), "서버 연결 안됨\n 위치 받아옴 "+String.format(Locale.KOREA, "%.3f", lastKnownLocation.getLatitude()) + " , " + String.format(Locale.KOREA, "%.3f", lastKnownLocation.getLongitude()), Toast.LENGTH_SHORT).show();
             }
             else { // 서버 연결 됫으면 메세지 받은 걸 텍스트 뷰에 뿌림
 //                Toast.makeText(getApplicationContext(),"메시지 받음",Toast.LENGTH_SHORT).show();

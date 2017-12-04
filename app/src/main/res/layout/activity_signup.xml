@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="org.androidtown.here_is.SignupActivity"
-    android:background="@drawable/back"
+    android:background="@drawable/back2"
     android:orientation="vertical"
     android:weightSum="1">
 

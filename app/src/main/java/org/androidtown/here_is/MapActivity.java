@@ -213,7 +213,7 @@ public class MapActivity extends Font
        CS = new ClientService();
         Intent intent = new Intent(getApplicationContext(), ClientService.class);
         bindService(intent, conn, Context.BIND_AUTO_CREATE);
-        Toast.makeText(getApplicationContext(), "Service 시작 ", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(getApplicationContext(), "Service 시작 ", Toast.LENGTH_SHORT).show();
 //########service ########
 //        tv = (TextView) findViewById(R.id.DDtext);
         gson = new Gson();
@@ -342,7 +342,7 @@ public class MapActivity extends Font
                     L_Marker_userlist.clear();
                     map.clear();
                    // showPlaceInformation(lastknownlocation);
-                    pickMark(lastknownlocation,myName,"서버 연결 안됨");
+                    pickMark(lastknownlocation,myName,"서버에 연결 중...");
                     if(CS.get_key_location_ok())
                         map.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(CS.getMyLocation().getLatitude(), CS.getMyLocation().getLongitude())));
                 }
