@@ -648,13 +648,14 @@ public class MapActivity extends Font
                         @Override
                         public void onClick(View view) {
 
+                            String s_url = ((Message) marker.getTag()).getUrl();
                             if( msg.getUrl().isEmpty()|| msg.getUrl().equals("NO URL")) {
                                 Toast.makeText(getApplicationContext(), "스트리밍 주소가 없습니다.", Toast.LENGTH_LONG).show();
                             }
                             else
                             {
 
-                                startActivity(new Intent(Intent.ACTION_VIEW).setData(Uri.parse(((Message) marker.getTag()).getUrl()))
+                                startActivity(new Intent(Intent.ACTION_VIEW).setData(Uri.parse(s_url))
                                         .setPackage("com.google.android.youtube"));
                             }
                     }
