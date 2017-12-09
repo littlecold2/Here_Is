@@ -2,8 +2,6 @@ package org.androidtown.here_is;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -18,7 +16,9 @@ import java.util.concurrent.ExecutionException;
 public class SignupProfileActivity extends Font {
     public static final String KEY_USER_DATA = "userdata";
 
+    //회원가입 버튼
     Button btn_profile_signup;
+    //프로필 이미지 버튼 9개
     ImageButton img1, img2, img3, img4, img5, img6, img7, img8, img9;
 
     UserData data;
@@ -45,6 +45,7 @@ public class SignupProfileActivity extends Font {
         processIntent(intent);
     }
 
+    //이미지 버튼 선택 시 그에 맞는 인덱스 저장
     public void img_1_Clicked(View v) {
         index = "1";
     }
@@ -73,6 +74,7 @@ public class SignupProfileActivity extends Font {
         index = "9";
     }
 
+    //SignupActivity에서 전달받은 UserData 형식의 정보를 전역변수 data에 저장
     private void processIntent(Intent intent) {
         if(intent != null) {
             Bundle bundle = intent.getExtras();
@@ -83,13 +85,19 @@ public class SignupProfileActivity extends Font {
             //        + "\ninfo : " + data.getINFO() + "\nurl : " + data.getURL(), Toast.LENGTH_LONG).show();
         }
     }
+
+    //회원가입 버튼 클릭 시
     public void btn_profile_signup_Clicked(View v) throws ExecutionException, InterruptedException, JSONException {
+        //이미지 버튼이 하나도 선택되지 않았을 경우 경고 문구 출력
         if(index.equals("")) {
             Toast.makeText(getApplicationContext(), "이미지를 선택해 주세요.", Toast.LENGTH_LONG).show();
         }
+        //선택 되었을 경우
         else {
+            //ServerConn에서 구분하기 위한 Type으로 signup을 저장
             String type = "signup";
 
+            //SignupActivity에서 전달받아 저장한 정보를 호출
             String id = data.getID().toString();
             String pw = data.getPW().toString();
             String name = data.getNAME().toString();
@@ -100,20 +108,20 @@ public class SignupProfileActivity extends Font {
             //Toast.makeText(getApplicationContext(), "before", Toast.LENGTH_LONG).show();
 
 
-            //result = new ServerConn(this).execute(type, "wqwwq96", "1234", "shj", "hello", "no", "6").get();
 
-            //result = new ServerConn(this).execute(type, data.getID(), data.getPW(), data.getNAME(), data.getINFO(), data.getURL(), index).get();
-
+            //ServerConn을 사용하여 회원가입 하는 정보 전달
             result = new ServerConn(this).execute(type, id, pw, name, info, url, index).get();
             //Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
-            Log.d("kkkk", result);
 
+            //서버에서 반환 된 값을 변형
             JSONObject jsondata =  new JSONObject(result);
             JSONArray jsondata2 = jsondata.getJSONArray("signupdata");
             JSONObject jsondata3 = jsondata2.getJSONObject(0);
 
+            //회원가입 성공, 실패에 대한 정보를 가져옴
             result = jsondata3.getString("status").toString();
 
+            //그 정보를 Intent에 담아서 SignupActivity에 전달하고 종료
             Intent intent = new Intent();
             intent.putExtra("result", result);
             setResult(RESULT_OK, intent);
