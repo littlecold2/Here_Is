@@ -39,42 +39,36 @@ import com.roughike.bottombar.OnTabReselectListener;
 import com.roughike.bottombar.OnTabSelectListener;
 
 public class ChattingActivity extends Font {
+    //########service ########
+    private ClientService CS ; // 서비스 변수
+    private boolean isService = false; // 서비스 바인드 확인 변수
 
+    private ImageView profieImg; // 프로필이미지뷰
+    private TextView idTextView; // 아이디 텍스트뷰
+    private TextView messageView; // 채팅 텍스트 뷰
+    private ScrollView scrollView; // 스크롤뷰
+    private EditText sendEditText; // 채팅 입력창
 
+    private SharedPreferences userinfo; // 저장된 유저정보 가져오기
+    private String myID; // 내 아이디 저장
+    private String myName; // 내 이름 저장
+
+    private String chatName="비어있음"; //
+    private int image_index=1; // 프로필 이미지 인덱스
 
 
     //########service ########
-    private ClientService CS ;
-    private boolean isService = false;
-
-    private ImageView profieImg;
-    private TextView idTextView;
-    private TextView messageView;
-    private ScrollView scrollView;
-    private EditText sendEditText;
-
-    private SharedPreferences userinfo;
-    private String myID;
-    private String myName;
-    private String myIntro;
-    private int myImage_index;
-    private String myUrl;
-
-    private String chatName="비어있음";
-    private int image_index=1;
-
-    //########service ########
-    private Intent svcIntent;
-    private ServiceConnection conn = new ServiceConnection() {
+    private Intent svcIntent; // 스타트 서비스 할 서비
+    private ServiceConnection conn = new ServiceConnection() { // 서비스 코넥션
     @Override
-    public void onServiceConnected(ComponentName name, IBinder service) {
+    public void onServiceConnected(ComponentName name, IBinder service) { // 연결 되면
             ClientService.Mybinder mb =(ClientService.Mybinder) service;
             // 서비스와 연결되었을 때 호출되는 메서드
             CS = mb.getService(); // 서비스가 제공하는 메소드 호출하여
             isService =true;
         }
         @Override
-        public void onServiceDisconnected(ComponentName name) {
+        public void onServiceDisconnected(ComponentName name) { // 연결 끊어지면
 
             isService = false;
         }
@@ -83,15 +77,15 @@ public class ChattingActivity extends Font {
 
 
     //########브로드 캐스트#######
-    private BroadcastReceiver mMessageReceiver = null;
-    private BroadcastReceiver setMessageReceiver = null;
+    private BroadcastReceiver mMessageReceiver = null; // 채팅 메시지 받는
+    private BroadcastReceiver setMessageReceiver = null; // 채팅방 만들어질때 받음, 상대방 정보 세팅
     private static final String EXTRA_GET_MESSAGE ="current_chat_message";
     private static final String EXTRA_ALL_MESSAGE ="all_chat_message";
     @Override
     protected void onPostResume() {
         super.onPostResume();
-        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("EVENT_CHAT"));
-        LocalBroadcastManager.getInstance(this).registerReceiver(setMessageReceiver, new IntentFilter("EVENT_CHAT_SET"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver, new IntentFilter("EVENT_CHAT")); // 채팅 메시지
+        LocalBroadcastManager.getInstance(this).registerReceiver(setMessageReceiver, new IntentFilter("EVENT_CHAT_SET")); // 채팅방 만들어질 떄
     }
 // ########브로드 캐스트#######
 
@@ -109,14 +103,11 @@ public class ChattingActivity extends Font {
 
 
 
-
+        // 저장된 데이터 가져옴
         userinfo = getSharedPreferences("userinfo", Activity.MODE_PRIVATE);
         myID = userinfo.getString("ID","");
         myName= userinfo.getString("NAME","");
-        myIntro= userinfo.getString("INFO","");
-        myImage_index= Integer.parseInt(userinfo.getString("INDEX",""));
-        myUrl= userinfo.getString("URL","");
-       // CS = new ClientService();
+
 
         sendEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override public boolean onEditorAction(TextView v, int actionId, KeyEvent event)
@@ -135,23 +126,25 @@ public class ChattingActivity extends Font {
         final Intent intent = new Intent(ChattingActivity.this, ClientService.class);
         bindService(intent, conn, Context.BIND_AUTO_CREATE);
 
+        //이미지 설정
         String resName = "@drawable/profile" + image_index;
         int resID = getResources().getIdentifier(resName, "drawable", this.getPackageName());
         profieImg.setImageResource(resID);
+
         idTextView.setText(chatName);
 
         //브로드캐스트
         mMessageReceiver = new BroadcastReceiver() {
             @Override
-            public void onReceive(Context context, Intent intent) {
+            public void onReceive(Context context, Intent intent) { // 채팅 메시지 받을 때
                 String message = intent.getExtras().getString(EXTRA_ALL_MESSAGE);
                 messageView.setText(message);
-                scrollView.fullScroll(View.FOCUS_DOWN);
+                scrollView.fullScroll(View.FOCUS_DOWN); // 받은 메시지 스크롤뷰 포커스 아래로
             }
         };
         setMessageReceiver = new BroadcastReceiver() {
             @Override
-            public void onReceive(Context context, Intent intent) {
+            public void onReceive(Context context, Intent intent) { // 상대방과의 채팅 방 생성 될 때
                 chatName = intent.getExtras().getString("name");
                 image_index = intent.getExtras().getInt("image");
                 String resName = "@drawable/profile" + image_index;
@@ -162,8 +155,45 @@ public class ChattingActivity extends Font {
         };
 // 브로드캐스트
 
+        // 채팅 전송 버튼
+        ImageButton sendBtn = (ImageButton)findViewById(R.id.sendBtn);
+        sendBtn.setOnClickListener(new ImageButton.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(isService &&CS.get_key_server_ok()&&CS.getChat_room()!=-1) { // 서비스 연결 됫고 서버 연결됫고 상대방과의 채팅방이 있을 때 만
+                            CS.sendMessage(Jsonize(myID,myName, CS.getChat_room(), "chat", sendEditText.getText().toString())); // 채팅메시지에 내 ID,이름, 채팅방번호,chat타입, 채팅내용 담아 보낸다
+                            runOnUiThread(new Runnable() {
+                                public void run() {
+                                    sendEditText.setText(""); //보냇으면 전송 텍스트부분 초기화
+
+                                }
+                            });
+                        }
+                        else if(CS.getChat_room()==-1) // 방이 비었으면
+                        {
+                            runOnUiThread(new Runnable() {
+
+                                public void run() {
+                                    sendEditText.setText("");
+                                    messageView.append("채팅방 비어있음.\n");
+                                    scrollView.fullScroll(View.FOCUS_DOWN);
+
+                                }
+                            });
+
+                        }
+
+                    }
+                }).start();
+            }
+        });
 
 
+
+        // 메뉴를 위한 바터바
         BottomBar bottomBar = (BottomBar) findViewById(R.id.bottomBar_chat);
         bottomBar.setOnTabSelectListener(new OnTabSelectListener() {
 
@@ -171,21 +201,15 @@ public class ChattingActivity extends Font {
             public void onTabSelected(@IdRes int tabId) {
 
                 if(tabId == R.id.tab1){
-//                    onBackPressed();
                 }
-
-                else if(tabId == R.id.tab2){
+                else if(tabId == R.id.tab2){ // 채팅방 로그아웃 버튼
 
                     if(isService &&CS.get_key_server_ok()) {
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
                                 CS.sendMessage(Jsonize(CS.getChat_room(), "chat_logout"));
-//                            my_thread.interrupt();
-                                //                  unbindService(conn);
-                                //          stopService(svcIntent);
                                 finish();
-                                //CS.setChat_text_clear();
                             }
                         }).start();
                     }
@@ -195,60 +219,20 @@ public class ChattingActivity extends Font {
 
             }
         });
-
-        ImageButton sendBtn = (ImageButton)findViewById(R.id.sendBtn);
-     sendBtn.setOnClickListener(new ImageButton.OnClickListener() {
-         @Override
-         public void onClick(View v) {
-             new Thread(new Runnable() {
-                 @Override
-                 public void run() {
-                     if(isService &&CS.get_key_server_ok()&&CS.getChat_room()!=-1) {
-                         CS.sendMessage(Jsonize(myID,myName, CS.getChat_room(), "chat", sendEditText.getText().toString()));
-                         runOnUiThread(new Runnable() {
-                             public void run() {
-                                 sendEditText.setText("");
-
-                             }
-                         });
-                     }
-                     else if(CS.getChat_room()==-1)
-                     {
-                         runOnUiThread(new Runnable() {
-
-                             public void run() {
-                                 sendEditText.setText("");
-                                 messageView.append("채팅방 비어있음.\n");
-                                 scrollView.fullScroll(View.FOCUS_DOWN);
-
-                             }
-                         });
-
-                     }
-
-                 }
-             }).start();
-         }
-     });
-
+        // 바텀바 다시 누를 때 리스너
         bottomBar.setOnTabReselectListener(new OnTabReselectListener() {
             @Override
             public void onTabReSelected(@IdRes int tabId) {
-                if(tabId == R.id.tab1){
+                if(tabId == R.id.tab1){ // 채팅내용 유지 , 맵으로 돌아가기
                     onBackPressed();
                 }
                 else if(tabId == R.id.tab2){
-
-                    if(isService &&CS.get_key_server_ok()) {
+                    if(isService &&CS.get_key_server_ok()) { // 채팅방 로그아웃
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
                                 CS.sendMessage(Jsonize(CS.getChat_room(), "chat_logout"));
-//                            my_thread.interrupt();
-                                //                  unbindService(conn);
-                                //          stopService(svcIntent);
                                 finish();
-                                //CS.setChat_text_clear();
                             }
                         }).start();
                     }
@@ -259,36 +243,14 @@ public class ChattingActivity extends Font {
         });
 
 
-
     } // onCreate
-
-
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-      //  my_thread = new Thread(this);
-       // my_thread.start();
-    }
 
 
     @Override
     protected void onDestroy() {
         Log.d("chat","destroy");
 
-//        if(CS.get_key_getMessage_ok()) {
-//            new Thread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    CS.sendMessage(Jsonize(CS.getChat_room(), "logout"));
-//                    CS.set_key_chat(false);
-//                    //CS.setChat_text_clear();
-//                }
-//            }).start();
-//        }
-
-       // my_thread.interrupt();
+        // 채팅방 나갈때 서비스 바인드 해제
         if(isService) {
             unbindService(conn);
             stopService(svcIntent);
@@ -296,36 +258,6 @@ public class ChattingActivity extends Font {
         }
         super.onDestroy();
     }
-
-
-//    @Override
-//    public void run() {
-//        Log.d("chat", String.valueOf(isService));
-//
-//        while(!my_thread.isInterrupted()) {
-//            try{
-//                Thread.sleep(1000);
-//                Log.d("chat", "chat_sleep");
-//            }catch (InterruptedException e) {
-//                e.printStackTrace();
-//                Thread.currentThread().interrupt();
-//            }
-//                runOnUiThread(new Runnable() {
-//
-//                    public void run() {
-//                        if(isService) {
-//                            messageView.setText(CS.getChat_text());
-//                        }
-//
-//
-//                    }
-//                });
-//        }
-//
-//    }
-//
-
-
 
 
     // chat

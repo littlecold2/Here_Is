@@ -9,10 +9,10 @@
             />
         <item
             android:id="@+id/stream"
-            android:title="스트리밍" />
+            android:title="내 스트리밍 시작" />
         <item
             android:id="@+id/chat"
-            android:title="채팅" />
+            android:title="내 채팅" />
         <item
             android:id="@+id/logout"
             android:title="로그아웃" />
@@ -24,7 +24,7 @@
                android:id="@+id/rest"
                android:title="음식점" />
             <item
-             android:id="@+id/bank"
+             android:id="@+id/cafe"
                 android:title="까페" />
             <item
             android:id="@+id/bus"

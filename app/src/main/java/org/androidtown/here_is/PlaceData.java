@@ -6,6 +6,8 @@ import java.util.List;
 
 /**
  * Created by Pig on 2017-11-23.
+ *
+ * 위치정보 관련 데이터
  */
 
 public class PlaceData {

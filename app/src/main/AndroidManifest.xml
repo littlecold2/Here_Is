@@ -55,7 +55,6 @@
         <activity android:name=".SignupProfileActivity" />
         <activity android:name=".EditIndexActivity" />
         <activity android:name=".Font" />
-        <activity android:name=".shared_test" />
         <activity android:name=".WebviewActivity"></activity>
     </application>
 

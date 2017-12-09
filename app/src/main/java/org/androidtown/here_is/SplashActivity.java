@@ -26,6 +26,7 @@ public class SplashActivity extends Activity {
         setContentView(R.layout.activity_splash);
         videoView = (VideoView) findViewById(R.id.videoView);
 
+        //스플래시 비디오로
         Uri video = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.splash);
         videoView.setVideoURI(video);
 
@@ -35,35 +36,13 @@ public class SplashActivity extends Activity {
                 startNextActivity();
             }
         });
-        Log.d("splash","1");
         videoView.start();
-        Log.d("splash","2");
     }
 
     private void startNextActivity() {
-        Log.d("splash","???");
-        //videoView.suspend();
         startActivity(new Intent(this, LoginActivity.class));
         finish();
     }
 
 }
 
-
-/*
-
-    protected void onCreate(Bundle savedInstanceState){
-        super.onCreate(savedInstanceState);
-
-
-        try {
-            overridePendingTransition(android.R.anim.fade_in,android.R.anim.fade_out);
-            Thread.sleep(2000);
-        }catch(InterruptedException e) {
-            e.printStackTrace();
-        }
-        startActivity(new Intent(this,LoginActivity.class));
-        finish();
-    }
-
- */

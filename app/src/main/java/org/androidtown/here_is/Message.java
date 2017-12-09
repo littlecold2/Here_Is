@@ -2,6 +2,8 @@ package org.androidtown.here_is;
 
 /**
  * Created by MIN on 2017-10-27.
+ *
+ * 유저 데이터 관련 메시지
  */
 
 public class Message {
@@ -92,9 +94,6 @@ public class Message {
     }
     String getUrl()
     {
-//            if(url==null)
-//                return "no";
-//            else
              return url;
     }
     Double getLat()

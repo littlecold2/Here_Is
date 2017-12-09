@@ -13,6 +13,7 @@ import com.tsengvn.typekit.TypekitContextWrapper;
  * Created by Pig on 2017-11-26.
  */
 
+// 폰트 전체 적용 할 수있게 여기서 처리하고 상속받아 처리하게
 public class Font extends AppCompatActivity{
 
     @Override

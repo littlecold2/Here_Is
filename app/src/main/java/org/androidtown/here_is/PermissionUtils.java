@@ -2,6 +2,8 @@ package org.androidtown.here_is;
 
 /**
  * Created by MIN on 2017-08-19.
+ *
+ * 위치 퍼미션 관련 함수
  */
 /*
  * Copyright (C) 2015 The Android Open Source Project

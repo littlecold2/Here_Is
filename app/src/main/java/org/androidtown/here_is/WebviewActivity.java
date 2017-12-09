@@ -23,7 +23,6 @@ public class WebviewActivity extends AppCompatActivity {
 
         mWebView = new WebView(this);
         mWebView.getSettings().setJavaScriptEnabled(true);
-//        mWebView.setWebViewClient(new WebViewClientClass());
         final AppCompatActivity activity = this;
 
         mWebView.setWebViewClient(new WebViewClient() {
@@ -31,13 +30,15 @@ public class WebviewActivity extends AppCompatActivity {
                 Toast.makeText(activity, description, Toast.LENGTH_SHORT).show();
             }
         });
-
+        // 바로 네이버 검색 할 수 있게 함
         mWebView .loadUrl("http://search.naver.com/search.naver?where=nexearch&query="+loc);
         setContentView(mWebView );
 
     }
 
            private class WebViewClientClass extends WebViewClient {
+
+        // 앱내부에서 바로 보여주게
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             view.loadUrl(url);
@@ -45,6 +46,7 @@ public class WebviewActivity extends AppCompatActivity {
         }
     }
 
+    // 웹뷰에서 뒤로가기 버튼 눌럿을경우 웹페이지에서 반응하게
            @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if ((keyCode == KeyEvent.KEYCODE_BACK) && mWebView.canGoBack()) {
