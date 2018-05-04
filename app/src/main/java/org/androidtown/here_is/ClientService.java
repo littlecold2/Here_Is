@@ -60,6 +60,7 @@ public class ClientService extends Service implements Runnable {
     private int chat_room=-1; // 채팅방 번호, 채팅 없을시 -1
 
     private String chat_name = "비어있음"; // 채팅 상대방 이름 저장
+    private String chat_id="";
     private int chat_image_index = 1; // 채팅 상대방 이미지 인덱스 저장 //이런걸 싱글톤으로 할껄
 
     // 브로드캐스트
@@ -117,10 +118,11 @@ public class ClientService extends Service implements Runnable {
 
         Log.d("CSV","onStartCommand");
         SendBroadcast_chat(chat_text,EXTRA_ALL_MESSAGE); // 채팅 전체 내용 전송
-        SendBroadcast_chat_set(chat_name,chat_image_index); // 상대방이미지, 이름 줌
+        SendBroadcast_chat_set(chat_id,chat_name,chat_image_index); // 상대방이미지, 이름 줌
         return super.onStartCommand(intent, flags, startId);
     }
 
+    @SuppressLint("MissingPermission")
     @Override
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.
@@ -153,6 +155,7 @@ public class ClientService extends Service implements Runnable {
     }
 
 
+    @SuppressLint("MissingPermission")
     public void run() // 쓰레드 시작부분
     {
         Log.d("CSV", a_targetIp+ " " +String.format(Locale.KOREA,"%d",a_targetPort));
@@ -168,8 +171,12 @@ public class ClientService extends Service implements Runnable {
                     Log.d("CSV", "msging");
                     MessageController(); // 메시지 컨트롤하는 함수
                 }
-                else
+                else {
+                    Log.d("CSV", "locating....");
+                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 4000, 0, listener); // 서비스 생기면 네트워크 위치 한번 불러옴
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 4000, 0, listener); // 서비스 생기면 GPS 위치 한번 불러옴
                     Thread.sleep(3000);
+                }
 
             }catch (InterruptedException e) {
                     Thread.currentThread().interrupt(); // 인터럽트가 트라이 캐치문 들어올시 while 문 꺼질수 있게 다시 인터럽트넣음
@@ -277,11 +284,12 @@ public class ClientService extends Service implements Runnable {
 
         LocalBroadcastManager.getInstance(this).sendBroadcast(it);
     }
-    private void SendBroadcast_chat_set(String name,int image_index) { // 채팅방 만들어질 때 관련
+    private void SendBroadcast_chat_set(String id ,String name,int image_index) { // 채팅방 만들어질 때 관련
         Intent it = new Intent("EVENT_CHAT_SET");
 
 
         if (!TextUtils.isEmpty(name)){
+            it.putExtra("id",id);
             it.putExtra("name",name);
             it.putExtra("image",image_index);
         }
@@ -327,7 +335,9 @@ Log.d("req","reqbraod");
     public int getMyImage_index(){return chat_image_index;}
     public void setChat_name(String name){chat_name = name;}
     public void setChat_image_index(int img){chat_image_index = img;}
-
+    public void setChat_id(String chat_id) {
+        this.chat_id = chat_id;
+    }
 
     public void sendMessage(String outmsg) {Log.d("chat",outmsg); outMsg.println(outmsg);}
 

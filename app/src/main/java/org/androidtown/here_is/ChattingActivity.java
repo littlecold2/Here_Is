@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.IdRes;
@@ -54,8 +55,8 @@ public class ChattingActivity extends Font {
     private String myName; // 내 이름 저장
 
     private String chatName="비어있음"; //
-    private int image_index=1; // 프로필 이미지 인덱스
-
+    private int image_index=0; // 프로필 이미지 인덱스
+    private String chatId = "";
 
     //########service ########
     private Intent svcIntent; // 스타트 서비스 할 서비
@@ -127,9 +128,16 @@ public class ChattingActivity extends Font {
         bindService(intent, conn, Context.BIND_AUTO_CREATE);
 
         //이미지 설정
-        String resName = "@drawable/profile" + image_index;
-        int resID = getResources().getIdentifier(resName, "drawable", this.getPackageName());
-        profieImg.setImageResource(resID);
+        if(image_index==0)
+        {
+            profieImg.setImageURI(Uri.parse(getCacheDir()+"/"+myID+".jpg"));
+        }
+        else
+        {
+            String resName = "@drawable/profile" + image_index;
+            int resID = getResources().getIdentifier(resName, "drawable", getApplicationContext().getPackageName());
+            profieImg.setImageResource(resID);
+        }
 
         idTextView.setText(chatName);
 
@@ -147,9 +155,17 @@ public class ChattingActivity extends Font {
             public void onReceive(Context context, Intent intent) { // 상대방과의 채팅 방 생성 될 때
                 chatName = intent.getExtras().getString("name");
                 image_index = intent.getExtras().getInt("image");
-                String resName = "@drawable/profile" + image_index;
-                int resID = getResources().getIdentifier(resName, "drawable", getApplicationContext().getPackageName());
-                profieImg.setImageResource(resID);
+                chatId = intent.getExtras().getString("id");
+                if(image_index==0)
+                {
+                       profieImg.setImageURI(Uri.parse(getCacheDir()+"/"+chatId+".jpg"));
+                }
+                else
+                {
+                    String resName = "@drawable/profile" + image_index;
+                    int resID = getResources().getIdentifier(resName, "drawable", getApplicationContext().getPackageName());
+                    profieImg.setImageResource(resID);
+                }
                 idTextView.setText(chatName);
             }
         };

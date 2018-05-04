@@ -112,9 +112,9 @@ public class LoginActivity extends Font {
                 //로그인 성공 시 user 정보 저장
 
                 saveUserinfo(userInfo);
-                String imgUrl = "http://13.124.63.18/here_is/profile_Image/a.jpg";
+                String imgUrl = "http://13.124.63.18/here_is/profile_Image";
                 imageDownload = new ImageDownload(LoginActivity.this,id);
-                imageDownload.execute(imgUrl);
+                imageDownload.execute(imgUrl,"my");
 
 
                 //로그인 성공이므로 MapActivity 실행

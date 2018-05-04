@@ -16,6 +16,8 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
 import android.hardware.usb.UsbRequest;
 import android.location.Location;
 import android.location.LocationListener;
@@ -87,6 +89,7 @@ import com.roughike.bottombar.OnTabReselectListener;
 import com.roughike.bottombar.OnTabSelectListener;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -188,9 +191,12 @@ public class MapActivity extends Font
     private static final String EXTRA_LOC_MESSAGE ="all_loc_message";
 
 
-
+//  이미지 관련
 //    String profile_path = Environment.getDataDirectory().toString() + "/Here_is/";
-    String profile_path = "";
+    String profile_path_my = "";
+    String profile_path_other = "";
+    ImageDownload imageDownload;
+    String imgUrl = "http://13.124.63.18/here_is/profile_Image";
 
 
     // 브로드 캐스트
@@ -234,7 +240,9 @@ public class MapActivity extends Font
         myUrl= userinfo.getString("URL","");
 
 
-        profile_path = getFilesDir()+"/";
+        profile_path_my = getFilesDir()+"/";
+        profile_path_other = getCacheDir()+"/";
+
 
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -250,13 +258,22 @@ public class MapActivity extends Font
         naviName = (TextView) navi_header.findViewById(R.id.naviName);
         naviIntro= (TextView) navi_header.findViewById(R.id.naviIntro);
 
-        String resName = "@drawable/profile" + myImage_index;
-        Log.d("img",resName);
-        int resID_ = getResources().getIdentifier(resName, "drawable", this.getPackageName());
-        naviProfile.setImageResource(resID_);
+        if(myImage_index ==0)
+            naviProfile.setImageURI(Uri.parse(profile_path_my + myID + ".jpg"));
+        else {
+            String resName = "@drawable/profile" + myImage_index;
+            Log.d("img", resName);
+            int resID_ = getResources().getIdentifier(resName, "drawable", this.getPackageName());
+            naviProfile.setImageResource(resID_);
+        }
         naviName.setText(myName);
         naviIntro.setText(myIntro);
         navigationView.setNavigationItemSelectedListener(this);
+
+
+        // 이미지 관련
+        imageDownload = new ImageDownload(MapActivity.this);
+
 
         // 편지 아이콘 // 채팅 올시 채팅 엑티비티로 갈 수 있게
         fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -305,7 +322,17 @@ public class MapActivity extends Font
 
                     for (Message mg : User_loc_List) {
                         if (mg.getChat_room() == -1) {
-                            pickMark(new LatLng(mg.getLat(), mg.getLng()), mg.getName(), mg.getIntro(),mg.getImage(), mg);
+                            if(!mg.getId().equals(myID)) {
+                                if(new File(profile_path_other + mg.getId() + "_s.jpg").exists()) {
+                                    pickMark(new LatLng(mg.getLat(), mg.getLng()), mg.getName(), mg.getIntro(), mg.getImage(), mg, 1);
+                                }
+                                else {
+                                    imageDownload.setID(mg.getId());
+                                    imageDownload.execute(imgUrl, "other");
+                                }
+                            }
+                            else
+                                pickMark(new LatLng(mg.getLat(), mg.getLng()), mg.getName(), mg.getIntro(),mg.getImage(), mg,0);
                         }
 
                     }
@@ -456,6 +483,9 @@ public class MapActivity extends Font
         drawer.closeDrawer(navigationView);
 
         placeRoute = new PlaceRoute(); // 길찾기 관련 클래스
+
+
+
     }// oncreate
 
     // 채팅 요청 왔을 시 보여줄 대화상자
@@ -463,13 +493,20 @@ public class MapActivity extends Font
 // 대화상자를만들기위한빌더객체생성
         Log.d("dialog","crate");
         dialog_key=true;
-        String resName = "@drawable/profile" + image;
-        int resID = getResources().getIdentifier(resName, "drawable", this.getPackageName());
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("채팅 요청");
         builder.setMessage(name + "님이 채팅을 요청 하셨습니다.\n\n 채팅을 수락 하시겠습니까?");
-        builder.setIcon(resID);
+        if(image ==0)
+        {
+            builder.setIcon(Drawable.createFromPath(profile_path_other + id + "_s.jpg"));
+        }
+        else {
+            String resName = "@drawable/profile" + image;
+            int resID = getResources().getIdentifier(resName, "drawable", this.getPackageName());
+            builder.setIcon(resID);
+        }
+
         builder.setCancelable(false);
         builder.setPositiveButton("네", new DialogInterface.OnClickListener() { // 예버튼
             public void onClick(DialogInterface dialog, int whichButton) {
@@ -479,9 +516,11 @@ public class MapActivity extends Font
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            CS.sendMessage(Jsonize(myID, id, myName, name, "room_set"));
                             CS.setChat_name(name);
                             CS.setChat_image_index(image);
+                            CS.setChat_id(id);
+                            CS.sendMessage(Jsonize(myID, id, myName, name, "room_set"));
+
                         }
                     }).start();
                 }
@@ -529,6 +568,7 @@ public class MapActivity extends Font
         }
         if(isService)
             unbindService(conn);
+        imageDownload.cancel(true);
         super.onDestroy();
     }
 
@@ -568,15 +608,26 @@ public class MapActivity extends Font
                     Btn_Streaming = (ImageButton) profileView.findViewById(R.id.chatStreaming);
 
                     // 태그정보 저장해놓음, 이렇게 안하면 주변 유저 위치 갱신 할때 마커가 사라져서 뻑남
+                    String id = ((Message)marker.getTag()).getId();
                     final int image= ((Message) marker.getTag()).getImage();
                     final String name = ((Message) marker.getTag()).getName();
                     String intro = ((Message) marker.getTag()).getIntro();
                     final Message msg = ((Message) marker.getTag());
-                    String resName = "@drawable/profile" + image;
-                    int resID = getResources().getIdentifier(resName, "drawable", getApplicationContext().getPackageName());
+
 
                     AlertDialog.Builder buider = new AlertDialog.Builder(MapActivity.this); //AlertDialog.Builder 객체 생성
-                    profileImage.setImageResource(resID);
+                    if(image == 0)
+                    {
+
+                        profileImage.setImageURI(Uri.parse(profile_path_other + id + ".jpg"));
+                    }
+                    else
+                    {
+                        String resName = "@drawable/profile" + image;
+                        int resID = getResources().getIdentifier(resName, "drawable", getApplicationContext().getPackageName());
+                        profileImage.setImageResource(resID);
+
+                    }
                     nicknameView.setText(name);
                     introView.setText(intro);
                     buider.setView(profileView);
@@ -597,6 +648,7 @@ public class MapActivity extends Font
                                 }).start();
                                 CS.setChat_image_index(image); // 상대방으로 이미지 인덱스 바꿈
                                 CS.setChat_name( name); // 이름도
+                                CS.setChat_id(id);
                                 Toast.makeText(getApplicationContext(), "채팅 요청을 보냈습니다.", Toast.LENGTH_LONG).show();
                                 dialog.cancel();
                             }
@@ -729,7 +781,7 @@ public class MapActivity extends Font
 
 
     // 마커 찍는 함수
-    private void pickMark(final LatLng LL,String name, String intro,int image_index,Message data) // 위도 경도, 이름 주소 등 받아서 마커 찍는 함수
+    private void pickMark(final LatLng LL,String name, String intro,int image_index,Message data, int div) // 위도 경도, 이름 주소 등 받아서 마커 찍는 함수
     {
         MarkerOptions markerOptions = new MarkerOptions(); // 옵션 설정 해놓을 변수
         markerOptions.position(LL); // 위치 적용
@@ -737,11 +789,14 @@ public class MapActivity extends Font
         markerOptions.snippet(intro); // 인사 넣음
         markerOptions.draggable(true); // 드래그 가능하도록
 
-        if(image_index == 0)
+        if(image_index == 0&& div ==1)
         {
-            markerOptions.icon(BitmapDescriptorFactory.fromPath(profile_path + myID + ".jpg"));
-//            markerOptions.icon();
+            markerOptions.icon(BitmapDescriptorFactory.fromPath(profile_path_other + data.getId() + "_s.jpg"));
 
+        }
+        else if(image_index == 0&& div ==0)
+        {
+            markerOptions.icon(BitmapDescriptorFactory.fromPath(profile_path_my + myID + "_s.jpg"));
         }
         else
         {
@@ -771,7 +826,7 @@ public class MapActivity extends Font
 
         if(myImage_index == 0)
         {
-            markerOptions.icon(BitmapDescriptorFactory.fromPath (profile_path + myID + ".jpg"));
+            markerOptions.icon(BitmapDescriptorFactory.fromPath (profile_path_my + myID + "_s.jpg"));
 //            markerOptions.icon();
 
         }
@@ -881,6 +936,7 @@ public class MapActivity extends Font
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                         finishAffinity();
                     }
+                    clearApplicationCache(null);
                     Process.killProcess(Process.myPid());
                 }
             });
@@ -1109,6 +1165,25 @@ public class MapActivity extends Font
         });
     }
 
+    private void clearApplicationCache(java.io.File dir){
+        Log.d("cache","clear cache");
+        if(dir==null)
+            dir = getCacheDir();
+        else;
+        if(dir==null)
+            return;
+        else;
+        java.io.File[] children = dir.listFiles();
+        try{
+            for(int i=0;i<children.length;i++)
+                if(children[i].isDirectory())
+                    clearApplicationCache(children[i]);
+                else children[i].delete();
+            Log.d("cache","clear cache");
+
+        }
+        catch(Exception e){}
+    }
 
     public void onPlacesFinished() {
 

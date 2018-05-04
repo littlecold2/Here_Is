@@ -194,8 +194,8 @@ public class SignupPhotoActivity extends Font {
 
         cropIntent.setDataAndType(photoURI, "image/*");
         cropIntent.putExtra("crop", "true");
-        cropIntent.putExtra("outputX", 100); // crop한 이미지의 x축 크기, 결과물의 크기
-        cropIntent.putExtra("outputY", 100); // crop한 이미지의 y축 크기
+        cropIntent.putExtra("outputX", 200); // crop한 이미지의 x축 크기, 결과물의 크기
+        cropIntent.putExtra("outputY", 200); // crop한 이미지의 y축 크기
         cropIntent.putExtra("aspectX", 1); // crop 박스의 x축 비율, 1&1이면 정사각형
         cropIntent.putExtra("aspectY", 1); // crop 박스의 y축 비율
         cropIntent.putExtra("scale", true);
@@ -220,8 +220,8 @@ public class SignupPhotoActivity extends Font {
         cropIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
         cropIntent.setDataAndType(photoUriPath, "image/*");
-        cropIntent.putExtra("outputX", 100); // crop한 이미지의 x축 크기, 결과물의 크기
-        cropIntent.putExtra("outputY", 100); // crop한 이미지의 y축 크기
+        cropIntent.putExtra("outputX", 200); // crop한 이미지의 x축 크기, 결과물의 크기
+        cropIntent.putExtra("outputY", 200); // crop한 이미지의 y축 크기
         cropIntent.putExtra("aspectX", 1); // crop 박스의 x축 비율, 1&1이면 정사각형
         cropIntent.putExtra("aspectY", 1); // crop 박스의 y축 비율
         Log.i("cropSingleImage", "photoUriPath22 : " + photoUriPath);
