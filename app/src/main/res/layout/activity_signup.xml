@@ -40,6 +40,7 @@
             android:layout_marginRight="30dp"
             android:textColor="#ffffff"
             android:textColorHint="#ffffff"
+            android:text="a"
             android:hint="ID"/>
 
     </LinearLayout>
@@ -58,6 +59,7 @@
             android:layout_marginRight="30dp"
             android:textColor="#ffffff"
             android:hint="PW"
+            android:text="a"
             android:textColorHint="#ffffff"
             android:inputType="textPassword"/>
 
@@ -70,6 +72,7 @@
         android:orientation="vertical">
 
         <EditText
+            android:text="a"
             android:id="@+id/editText_signup_name"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -88,6 +91,7 @@
         android:orientation="vertical">
 
         <EditText
+            android:text="a"
             android:id="@+id/editText_signup_info"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

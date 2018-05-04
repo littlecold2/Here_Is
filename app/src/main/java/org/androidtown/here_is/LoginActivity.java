@@ -2,12 +2,17 @@ package org.androidtown.here_is;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -22,18 +27,22 @@ import java.util.concurrent.ExecutionException;
 
 public class LoginActivity extends Font {
     public static final String KEY_BEFORE_USER_DATA = "before_userdata";
+    private static final int MY_PERMISSION_CAMERA = 1111;
+
     EditText ID, PW;
     Button Login;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1; // 위치 권한 쓸때
     private boolean mPermissionDenied = false;
-
     UserData before_data;
+    private ImageDownload imageDownload;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         enableMyLocation();
+        checkPermission();
+
 
         SharedPreferences userinfo = getSharedPreferences("userinfo", Activity.MODE_PRIVATE);
         if ((userinfo != null) && (userinfo.getString("STATUS", "").equals("Login_OK"))) {
@@ -44,6 +53,7 @@ public class LoginActivity extends Font {
                     userinfo.getString("INFO", ""),
                     userinfo.getString("URL", ""),
                     userinfo.getString("INDEX", ""));
+
 
             //Intent intent = new Intent(getApplicationContext(), MapActivity.class);
             Intent intent = new Intent(getApplicationContext(), MapActivity.class);
@@ -97,7 +107,12 @@ public class LoginActivity extends Font {
                         jsondata3.getString("index"));
 
                 //로그인 성공 시 user 정보 저장
+
                 saveUserinfo(userInfo);
+                String imgUrl = "http://13.124.63.18/here_is/profile_Image/a.jpg";
+                imageDownload = new ImageDownload(LoginActivity.this,id);
+                imageDownload.execute(imgUrl);
+
 
                 //로그인 성공이므로 MapActivity 실행
                 //Intent intent = new Intent(getApplicationContext(), MapActivity.class);
@@ -122,6 +137,8 @@ public class LoginActivity extends Font {
     protected void saveUserinfo(UserData userData) {
         SharedPreferences userinfo = getSharedPreferences("userinfo", Activity.MODE_PRIVATE);
         SharedPreferences.Editor editor = userinfo.edit();
+
+
         editor.putString("STATUS", "Login_OK");
         editor.putString("ID", userData.getID());
         editor.putString("PW", userData.getPW());
@@ -129,6 +146,7 @@ public class LoginActivity extends Font {
         editor.putString("INFO", userData.getINFO());
         editor.putString("URL", userData.getURL());
         editor.putString("INDEX", userData.getINDEX());
+
         editor.commit();
     }
 
@@ -145,9 +163,22 @@ public class LoginActivity extends Font {
 
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
-        if (requestCode != LOCATION_PERMISSION_REQUEST_CODE) {
+
+        if(requestCode == MY_PERMISSION_CAMERA) {
+            for (int i = 0; i < grantResults.length; i++) {
+                // grantResults[] : 허용된 권한은 0, 거부한 권한은 -1
+                if (grantResults[i] < 0) {
+                    Toast.makeText(LoginActivity.this, "해당 권한을 활성화 하셔야 합니다.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+            // 허용했다면 이 부분에서..
+
+        }
+        else if (requestCode != LOCATION_PERMISSION_REQUEST_CODE) {
             return;
         }
+
 
         if (org.androidtown.here_is.PermissionUtils.isPermissionGranted(permissions, grantResults,
                 Manifest.permission.ACCESS_FINE_LOCATION)) {
@@ -175,5 +206,44 @@ public class LoginActivity extends Font {
     }
 
 // 위치퍼미션 끝
+
+    // 외부저장소 퍼미션
+
+    private void checkPermission(){
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            // 처음 호출시엔 if()안의 부분은 false로 리턴 됨 -> else{..}의 요청으로 넘어감
+            if ((ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) ||
+                    (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA))) {
+                new AlertDialog.Builder(this)
+                        .setTitle("알림")
+                        .setMessage("저장소 권한이 거부되었습니다. 사용을 원하시면 설정에서 해당 권한을 직접 허용하셔야 합니다.")
+                        .setNeutralButton("설정", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                intent.setData(Uri.parse("package:" + getPackageName()));
+                                startActivity(intent);
+                            }
+                        })
+                        .setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                finish();
+                            }
+                        })
+                        .setCancelable(false)
+                        .create()
+                        .show();
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA}, MY_PERMISSION_CAMERA);
+            }
+        }
+    }
+
+
+
+
+    // 외부저장소 퍼미션 끝
+
 
 }

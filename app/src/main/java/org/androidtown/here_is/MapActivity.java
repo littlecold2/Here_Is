@@ -24,6 +24,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -187,6 +188,11 @@ public class MapActivity extends Font
     private static final String EXTRA_LOC_MESSAGE ="all_loc_message";
 
 
+
+//    String profile_path = Environment.getDataDirectory().toString() + "/Here_is/";
+    String profile_path = "";
+
+
     // 브로드 캐스트
     @Override
     protected void onPostResume() {
@@ -228,7 +234,7 @@ public class MapActivity extends Font
         myUrl= userinfo.getString("URL","");
 
 
-
+        profile_path = getFilesDir()+"/";
 
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -731,10 +737,21 @@ public class MapActivity extends Font
         markerOptions.snippet(intro); // 인사 넣음
         markerOptions.draggable(true); // 드래그 가능하도록
 
-        String resName = "@drawable/marker_profile" + image_index;
-        int resID = getResources().getIdentifier(resName, "drawable", this.getPackageName());
+        if(image_index == 0)
+        {
+            markerOptions.icon(BitmapDescriptorFactory.fromPath(profile_path + myID + ".jpg"));
+//            markerOptions.icon();
 
-        markerOptions.icon(BitmapDescriptorFactory.fromResource(resID));
+        }
+        else
+        {
+            String resName = "@drawable/marker_profile" + image_index;
+            int resID = getResources().getIdentifier(resName, "drawable", this.getPackageName());
+
+            markerOptions.icon(BitmapDescriptorFactory.fromResource(resID));
+        }
+
+
 
 
         Marker mk;
@@ -752,9 +769,19 @@ public class MapActivity extends Font
         markerOptions.snippet(address); // 주소 넣음
         markerOptions.draggable(true); // 드래그 가능하도록
 
-        String resName = "@drawable/marker_profile" + myImage_index;
-        int resID = getResources().getIdentifier(resName, "drawable", this.getPackageName());
-        markerOptions.icon(BitmapDescriptorFactory.fromResource(resID));
+        if(myImage_index == 0)
+        {
+            markerOptions.icon(BitmapDescriptorFactory.fromPath (profile_path + myID + ".jpg"));
+//            markerOptions.icon();
+
+        }
+        else
+        {
+            String resName = "@drawable/marker_profile" + myImage_index;
+            int resID = getResources().getIdentifier(resName, "drawable", this.getPackageName());
+
+            markerOptions.icon(BitmapDescriptorFactory.fromResource(resID));
+        }
         Marker mk;
         mk = map.addMarker(markerOptions);
         mk.showInfoWindow();
@@ -894,19 +921,19 @@ public class MapActivity extends Font
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
+            // Handle navigation view item clicks here.
+            int id = item.getItemId();
 
-        if (id == R.id.info) { // 내 정보수정 버튼 클릭시
-            Intent intent = new Intent(getApplicationContext(), EditProfileActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
+            if (id == R.id.info) { // 내 정보수정 버튼 클릭시
+                Intent intent = new Intent(getApplicationContext(), EditProfileActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
 
-        } else if (id == R.id.stream) { //내 스트리밍 시작 버튼 클릭시
-            startActivity(new Intent(Intent.ACTION_VIEW).setData(Uri.parse("https://youtube.com"))
-            .setPackage("com.google.android.youtube"));
+            } else if (id == R.id.stream) { //내 스트리밍 시작 버튼 클릭시
+                startActivity(new Intent(Intent.ACTION_VIEW).setData(Uri.parse("https://youtube.com"))
+                        .setPackage("com.google.android.youtube"));
 
-        } else if (id == R.id.chat) { // 내 채팅 버튼
+            } else if (id == R.id.chat) { // 내 채팅 버튼
             Intent intent = new Intent(getApplicationContext(), ChattingActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(intent);

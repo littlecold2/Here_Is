@@ -36,7 +36,8 @@ public class SplashActivity extends Activity {
                 startNextActivity();
             }
         });
-        videoView.start();
+//        videoView.start();
+        startNextActivity(); // 이거 위에꺼 쓰면 뺴라
     }
 
     private void startNextActivity() {

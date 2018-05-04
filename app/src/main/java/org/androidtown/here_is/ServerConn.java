@@ -2,6 +2,7 @@ package org.androidtown.here_is;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.provider.ContactsContract;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -23,6 +24,9 @@ public class ServerConn extends AsyncTask<String, Void, String> {
     Context context;
     //AlertDialog alertDialog;
 
+
+
+
     ServerConn(Context ctx) {
         context = ctx;
     }
@@ -32,7 +36,8 @@ public class ServerConn extends AsyncTask<String, Void, String> {
         String type = params[0];
 
         if (type.equals("login")) {
-            String login_url = "http://52.78.20.5/here/login_json.php";
+            String login_url = "http://13.124.63.18/here_is/login_json.php";
+//            String login_url = "http://52.78.20.5/here/login_json.php";
             try {
                 String user_id = params[1];
                 String user_pw = params[2];
@@ -67,7 +72,7 @@ public class ServerConn extends AsyncTask<String, Void, String> {
         }
 
         if (type.equals("signup")) {
-            String signup_url = "http://52.78.20.5/here/signup_json.php";
+            String signup_url = "http://13.124.63.18/here_is/signup_json.php";
             try {
                 String id = params[1];
                 String pw = params[2];
@@ -112,7 +117,7 @@ public class ServerConn extends AsyncTask<String, Void, String> {
         }
 
         if (type.equals("edit_profile")) {
-            String signup_url = "http://52.78.20.5/here/edit_profile_json.php";
+            String signup_url = "http://13.124.63.18/here_is/edit_profile_json.php";
             try {
                 String id = params[1];
                 String pw = params[2];
@@ -177,4 +182,8 @@ public class ServerConn extends AsyncTask<String, Void, String> {
     protected void onProgressUpdate(Void... values) {
         super.onProgressUpdate(values);
     }
+
+
+
+
 }

@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutionException;
 
 public class SignupProfileActivity extends Font {
     public static final String KEY_USER_DATA = "userdata";
-
+    public static final int REQUEST_CODE_PHOTO = 111;
     Button btn_profile_signup;
     ImageButton img1, img2, img3, img4, img5, img6, img7, img8, img9;
 
@@ -83,6 +83,15 @@ public class SignupProfileActivity extends Font {
             //        + "\ninfo : " + data.getINFO() + "\nurl : " + data.getURL(), Toast.LENGTH_LONG).show();
         }
     }
+    public void btn_photo_signup_Clicked(View v)
+    {
+        Intent intent = new Intent(getApplicationContext(), SignupPhotoActivity.class);
+        intent.putExtra(KEY_USER_DATA, data);
+        startActivityForResult(intent, REQUEST_CODE_PHOTO);
+//        startActivity(intent);
+    }
+
+
     public void btn_profile_signup_Clicked(View v) throws ExecutionException, InterruptedException, JSONException {
         if(index.equals("")) {
             Toast.makeText(getApplicationContext(), "이미지를 선택해 주세요.", Toast.LENGTH_LONG).show();
@@ -106,6 +115,11 @@ public class SignupProfileActivity extends Font {
 
             result = new ServerConn(this).execute(type, id, pw, name, info, url, index).get();
             //Toast.makeText(getApplicationContext(), result, Toast.LENGTH_LONG).show();
+
+//            if(index.equals("0"))
+//            {
+//
+//            }
             Log.d("kkkk", result);
 
             JSONObject jsondata =  new JSONObject(result);
@@ -121,4 +135,31 @@ public class SignupProfileActivity extends Font {
 
         }
     }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_PHOTO) {
+            //Toast.makeText(getApplicationContext(), "onActivityResult 메소드호출됨. 요청코드: " + requestCode+ ", 결과코드: " + resultCode, Toast.LENGTH_LONG).show();
+            if (resultCode == RESULT_OK) {
+                String result = data.getExtras().getString("result");
+                //Toast.makeText(getApplicationContext(), "응답으로전달된 result : " + result, Toast.LENGTH_LONG).show();
+
+
+                if (result.equals("yes")) {
+                    Toast.makeText(getApplicationContext(), "촬영된 사진으로 프로필을 지정합니다.", Toast.LENGTH_LONG).show();
+                    index = "0";
+                    Log.d("photo","if");
+                } else if (result.equals("no")) {
+                    Toast.makeText(getApplicationContext(), "사진 취소", Toast.LENGTH_LONG).show();
+                    index = "";
+                    Log.d("photo","else if");
+                }
+                else {
+                    Toast.makeText(getApplicationContext(), "?????", Toast.LENGTH_LONG).show();
+                    Log.d("photo","else");
+                }
+            }
+        }
+    }
+
 }

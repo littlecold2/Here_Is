@@ -195,9 +195,23 @@
 
         <Button
             android:id="@+id/btn_profile_signup"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="25dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:layout_marginTop="25dp"
+            android:background="#00ff0000"
+            android:onClick="btn_profile_signup_Clicked"
+            android:text="회  원  가  입"
+            android:textColor="#ffffff"
+            android:textSize="20dp" />
+
+        <Button
+            android:id="@+id/btn_photo_signup"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="회  원  가  입"
+            android:text="사진 찍기"
             android:background="#00ff0000"
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
@@ -205,8 +219,7 @@
             android:layout_marginBottom="25dp"
             android:textColor="#ffffff"
             android:textSize="20dp"
-            android:onClick="btn_profile_signup_Clicked"/>
-
+            android:onClick="btn_photo_signup_Clicked"/>
     </LinearLayout>
 
 
