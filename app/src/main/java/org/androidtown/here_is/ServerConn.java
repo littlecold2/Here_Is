@@ -41,7 +41,7 @@ public class ServerConn extends AsyncTask<String, Void, String> {
 
         //만약 로그인 시
         if (type.equals("login")) {
-            String login_url = "http://13.124.63.18/here_is/login_json.php";
+            String login_url = "http://littlecold2.iptime.org/here_is/login_json.php";
 //            String login_url = "http://52.78.20.5/here/login_json.php";
             //서버에 있는 로그인 php와 통신하기 위해서 경로 지정
             try {
@@ -83,7 +83,7 @@ public class ServerConn extends AsyncTask<String, Void, String> {
 
         //회원가입 시
         if (type.equals("signup")) {
-            String signup_url = "http://13.124.63.18/here_is/signup_json.php";
+            String signup_url = "http://littlecold2.iptime.org/here_is/signup_json.php";
             try {
                 String id = params[1];
                 String pw = params[2];
@@ -129,7 +129,7 @@ public class ServerConn extends AsyncTask<String, Void, String> {
 
         //회원정보 수정 시
         if (type.equals("edit_profile")) {
-            String signup_url = "http://13.124.63.18/here_is/edit_profile_json.php";
+            String signup_url = "http://littlecold2.iptime.org/here_is/edit_profile_json.php";
             try {
                 String id = params[1];
                 String pw = params[2];

@@ -136,7 +136,7 @@ public class SignupProfileActivity extends Font {
 
             //회원가입 성공, 실패에 대한 정보를 가져옴
             result = jsondata3.getString("status").toString();
-
+            Log.d("result__",result);
             //그 정보를 Intent에 담아서 SignupActivity에 전달하고 종료
             Intent intent = new Intent();
             intent.putExtra("result", result);

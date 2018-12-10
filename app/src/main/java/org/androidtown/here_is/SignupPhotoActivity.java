@@ -299,7 +299,7 @@ public class SignupPhotoActivity extends Font {
 
     public void uploadFile (String filePath)
     {
-        String url = "http://13.124.63.18/here_is/Image.php";
+        String url = "http://littlecold2.iptime.org/here_is/Image.php";
         try{
             UploadFile uploadFile = new UploadFile(SignupPhotoActivity.this);
             uploadFile.setPath(filePath);

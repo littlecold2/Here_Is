@@ -196,7 +196,7 @@ public class MapActivity extends Font
     String profile_path_my = "";
     String profile_path_other = "";
     ImageDownload imageDownload;
-    String imgUrl = "http://13.124.63.18/here_is/profile_Image";
+    String imgUrl = "http://littlecold2.iptime.org/here_is/profile_Image";
 
 
     // 브로드 캐스트
@@ -414,6 +414,7 @@ public class MapActivity extends Font
                 }
                 else if(tabId == R.id.tab4){ // 위치 검색 실행
                     if (CS.get_key_location_ok()) {
+
                         PlacePicker.IntentBuilder intentBuilder = new PlacePicker.IntentBuilder();
                         intentBuilder.setLatLngBounds(new LatLngBounds(new LatLng(lastknownlocation.latitude - 0.01, lastknownlocation.longitude - 0.01), new LatLng(lastknownlocation.latitude + 0.01, lastknownlocation.longitude + 0.01)));
                         Intent intent = null;
@@ -1133,6 +1134,7 @@ public class MapActivity extends Font
                     markerOptions.title(place.getName());
                     markerOptions.snippet(place.getVicinity());
                     Marker item = map.addMarker(markerOptions);
+
                     switch(placechecker)
                     {
                         case 0://식당

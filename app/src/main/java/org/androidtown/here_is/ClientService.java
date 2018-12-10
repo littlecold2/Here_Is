@@ -37,7 +37,7 @@ public class ClientService extends Service implements Runnable {
     private BufferedReader inMsg; // 받은 메시지 읽을 버퍼
     private PrintWriter outMsg; // 메세지 보낼 라이터
 
-    private String a_targetIp = "13.124.63.18"; // 서버 ip
+    private String a_targetIp = "littlecold2.iptime.org"; // 서버 ip
     private int a_targetPort = 9000; // 서버 port
 
     private List<Message> message_List; // 서버에서 받은 메시지 파싱해 넣어 둘 함수

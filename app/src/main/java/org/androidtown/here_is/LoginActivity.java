@@ -14,6 +14,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -91,7 +92,7 @@ public class LoginActivity extends Font {
             String result = "";
             //ServerConn을 통해서 서버 DB에 접근해서 결과값을 가져옴
             result = new ServerConn(this).execute(type, id, pw).get();
-
+            Log.d("result_",result);
             //JSON 형식의 결과값을 변환
             JSONObject jsondata =  new JSONObject(result);
             JSONArray jsondata2 = jsondata.getJSONArray("userdata");
@@ -112,7 +113,7 @@ public class LoginActivity extends Font {
                 //로그인 성공 시 user 정보 저장
 
                 saveUserinfo(userInfo);
-                String imgUrl = "http://13.124.63.18/here_is/profile_Image";
+                String imgUrl = "http://littlecold2.iptime.org/here_is/profile_Image";
                 imageDownload = new ImageDownload(LoginActivity.this,id);
                 imageDownload.execute(imgUrl,"my");
 
